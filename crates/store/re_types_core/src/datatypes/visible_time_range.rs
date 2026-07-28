@@ -23,7 +23,7 @@ use crate::{ComponentDescriptor, ComponentType};
 use crate::{DeserializationError, DeserializationResult};
 
 /// **Datatype**: Visible time range bounds for a specific timeline.
-#[derive(Clone, Debug, PartialEq, Eq, Default, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Debug, PartialEq, Eq, ::re_byte_size::SizeBytes)]
 pub struct VisibleTimeRange {
     /// Name of the timeline this applies to.
     pub timeline: crate::datatypes::Utf8,

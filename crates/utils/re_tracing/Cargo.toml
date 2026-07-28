@@ -3,9 +3,14 @@ name = "re_tracing"
 version.workspace = true
 edition.workspace = true
 
+[features]
+server = ["dep:puffin_http", "dep:re_log", "dep:rfd"]
+profile_capture = ["dep:puffin"]
+
 [dependencies]
 tracing.workspace = true
 flatland-observe = "0.1.0"
+re_log = { workspace = true, optional = true }
 
 puffin = { workspace = true, optional = true }
 puffin_http = { workspace = true, optional = true }
