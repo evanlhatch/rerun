@@ -22,6 +22,16 @@ pub trait SizeBytes {
 /// A node in a memory usage tree. Minimal stub - used as trait in vendored code.
 pub trait MemUsageNode {}
 
+// ── Primitive type impls ──────────────────────────────────────────────────
+
+macro_rules! impl_size_bytes_for_primitive {
+    ($($t:ty),*) => {
+        $(impl SizeBytes for $t {})*
+    };
+}
+
+impl_size_bytes_for_primitive!(u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, bool, usize, isize);
+
 // ── Standard type impls (needed by re_video and other vendored crates) ──────
 
 impl<T: SizeBytes> SizeBytes for Vec<T> {
