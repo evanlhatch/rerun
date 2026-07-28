@@ -112,10 +112,10 @@ impl crate::Loggable for Float64 {
     {
         use crate::{Loggable as _, ResultExt as _, arrow_zip_validity::ZipValidity};
         use arrow::{array::*, buffer::*, datatypes::*};
-        if let Some(nulls) = arrow_data.nulls()
-            && nulls.null_count() != 0
-        {
-            return Err(DeserializationError::missing_data());
+        if let Some(nulls) = arrow_data.nulls() {
+            if nulls.null_count() != 0 {
+                return Err(DeserializationError::missing_data());
+            }
         }
         Ok({
             let slice = arrow_data
@@ -145,5 +145,11 @@ impl From<Float64> for f64 {
     #[inline]
     fn from(value: Float64) -> Self {
         value.0
+    }
+}
+
+impl std::fmt::Display for Float64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

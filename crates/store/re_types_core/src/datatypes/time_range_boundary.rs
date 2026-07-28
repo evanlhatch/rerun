@@ -23,7 +23,7 @@ use crate::{ComponentDescriptor, ComponentType};
 use crate::{DeserializationError, DeserializationResult};
 
 /// **Datatype**: Left or right boundary of a time range.
-#[derive(Clone, Debug, Copy, PartialEq, Eq, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq, Default, ::re_byte_size::SizeBytes)]
 pub enum TimeRangeBoundary {
     /// Boundary is a value relative to the time cursor.
     CursorRelative(crate::datatypes::TimeInt),
@@ -32,6 +32,7 @@ pub enum TimeRangeBoundary {
     Absolute(crate::datatypes::TimeInt),
 
     /// The boundary extends to infinity.
+    #[default]
     Infinite,
 }
 

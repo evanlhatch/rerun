@@ -23,7 +23,7 @@ use crate::{ComponentDescriptor, ComponentType};
 use crate::{DeserializationError, DeserializationResult};
 
 /// **Datatype**: Visible time range bounds for a specific timeline.
-#[derive(Clone, Debug, Copy, PartialEq, Eq, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq, Default, ::re_byte_size::SizeBytes)]
 pub struct TimeRange {
     /// Low time boundary for sequence timeline.
     pub start: crate::datatypes::TimeRangeBoundary,

@@ -23,7 +23,7 @@ use crate::{ComponentDescriptor, ComponentType};
 use crate::{DeserializationError, DeserializationResult};
 
 /// **Datatype**: A 64-bit number describing either nanoseconds OR sequence numbers.
-#[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ::re_byte_size::SizeBytes)]
 pub struct TimeInt(pub i64);
 
 crate::macros::impl_into_cow!(TimeInt);
@@ -101,9 +101,7 @@ impl crate::Loggable for TimeInt {
     {
         use crate::{Loggable as _, ResultExt as _, arrow_zip_validity::ZipValidity};
         use arrow::{array::*, buffer::*, datatypes::*};
-        if let Some(nulls) = arrow_data.nulls()
-            && nulls.null_count() != 0
-        {
+        if arrow_data.nulls().map_or(false, |n| n.null_count() != 0) {
             return Err(DeserializationError::missing_data());
         }
         Ok({
@@ -129,6 +127,7 @@ impl From<i64> for TimeInt {
         Self(value)
     }
 }
+
 
 impl From<TimeInt> for i64 {
     #[inline]

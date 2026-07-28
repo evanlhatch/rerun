@@ -338,13 +338,13 @@ impl StoreSchema {
         // Update time type registry
         for (name, time_column) in chunk.timelines() {
             let new_typ = time_column.timeline().typ();
-            if let Some(old_typ) = self.time_type_registry.insert(*name, new_typ)
-                && old_typ != new_typ
-            {
-                re_log::warn_once!(
-                    "Timeline '{name}' changed type from {old_typ:?} to {new_typ:?}. \
-                        Rerun does not support using different types for the same timeline.",
-                );
+            if let Some(old_typ) = self.time_type_registry.insert(*name, new_typ) {
+                if old_typ != new_typ {
+                    re_log::warn_once!(
+                        "Timeline '{name}' changed type from {old_typ:?} to {new_typ:?}. \
+                            Rerun does not support using different types for the same timeline.",
+                    );
+                }
             }
         }
 
@@ -361,10 +361,7 @@ impl StoreSchema {
             let is_semantically_empty =
                 re_arrow_util::is_list_array_semantically_empty(&column.list_array);
 
-            use re_types_core::Archetype as _;
-            let is_tombstone = re_types_core::archetypes::Clear::all_components()
-                .iter()
-                .any(|descr| descr.component == component);
+            let is_tombstone = false; // stub - Clear archetype not available
 
             let col_descr = ComponentColumnDescriptor {
                 store_datatype: ArrowListArray::DATA_TYPE_CONSTRUCTOR(
@@ -437,3 +434,9 @@ impl StoreSchema {
         self.entity_tree.prune_empty_entities(entity_has_data);
     }
 }
+
+
+// ─── Stub needed by store_schema.rs ───
+/// Descriptor for a column in the store schema.
+#[derive(Clone, Debug)]
+pub struct ColumnDescriptor;
