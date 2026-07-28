@@ -1,5 +1,8 @@
 //! Shim: re_int — integer utility types.
 
+pub mod unsigned_abs;
+pub use unsigned_abs::UnsignedAbs;
+
 /// A type-safe wrapper around an i32 representing a quality of service value.
 /// Used in Rerun's data pipeline for LOD / quality selection.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
