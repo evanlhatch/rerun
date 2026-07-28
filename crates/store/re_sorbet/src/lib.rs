@@ -105,3 +105,101 @@ pub fn is_static_chunk(batch: &RecordBatch) -> Option<bool> {
         .ok()
         .map(|chunk| chunk.is_static())
 }
+
+
+// ── Flatland-vendor additions ──
+/// Describes a component column selection.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct ComponentColumnSelector {
+    pub entity_path: re_log_types::EntityPath,
+    pub component: String,
+}
+
+impl ComponentColumnSelector {
+    pub fn column_name(&self) -> String {
+        format!("{}:{}", self.entity_path, self.component)
+    }
+    pub fn component_identifier(&self) -> Result<re_types_core::ComponentIdentifier, re_types_core::InvalidComponentIdentifierError> {
+        re_types_core::ComponentIdentifier::try_new(&self.component)
+    }
+}
+
+impl std::fmt::Display for ComponentColumnSelector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.entity_path, self.component)
+    }
+}
+
+/// Descriptor for a component column.
+#[derive(Clone, Debug)]
+pub struct ComponentColumnDescriptor {
+    pub entity_path: re_log_types::EntityPath,
+    pub component: String,
+    pub archetype: Option<String>,
+    pub component_type: u32,
+    pub is_static: bool,
+    pub is_tombstone: bool,
+    pub is_semantically_empty: bool,
+    pub store_datatype: arrow::datatypes::DataType,
+}
+
+impl ComponentColumnDescriptor {
+    pub fn component_descriptor(&self) -> re_types_core::ComponentDescriptor {
+        re_types_core::ComponentDescriptor {
+            archetype: self.archetype.clone().map(Into::into),
+            component: re_types_core::ComponentIdentifier::try_new(&self.component).unwrap_or_default(),
+            component_type: re_types_core::ComponentType::from(self.component_type),
+        }
+    }
+    pub fn inner_datatype(&self) -> arrow::datatypes::DataType {
+        self.store_datatype.clone()
+    }
+    pub fn to_arrow_field(&self, _batch_type: BatchType) -> arrow::datatypes::Field {
+        arrow::datatypes::Field::new(&self.component, self.store_datatype.clone(), true)
+    }
+}
+
+/// Descriptors for chunk columns.
+#[derive(Clone, Debug, Default)]
+pub struct ChunkColumnDescriptors {
+    pub row_id: RowIdColumnDescriptor,
+    pub indices: Vec<IndexColumnDescriptor>,
+    pub components: Vec<ComponentColumnDescriptor>,
+}
+
+/// Descriptor for a row-id column.
+#[derive(Clone, Debug)]
+pub struct RowIdColumnDescriptor;
+impl RowIdColumnDescriptor {
+    pub fn from_sorted(_sorted: bool) -> Self { Self }
+}
+
+/// Descriptor for an index column.
+#[derive(Clone, Debug)]
+pub struct IndexColumnDescriptor;
+
+/// Select a time column.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct TimeColumnSelector {
+    pub timeline: re_log_types::TimelineName,
+}
+
+/// Describes a column selection.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum ColumnSelector {
+    RowId,
+    Time(TimeColumnSelector),
+    Component(ComponentColumnSelector),
+}
+
+/// The kind of a column.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ColumnKind {
+    RowId, Time, Component,
+}
+
+/// Batch type for columnar data.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum BatchType {
+    Component, Time, RowId, Dataframe,
+}

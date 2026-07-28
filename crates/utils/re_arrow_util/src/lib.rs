@@ -1,284 +1,146 @@
-//! Helpers for working with arrow
+//! Minimal re_arrow_util shim — stubs for vendored store crates.
+//! Matches original Rerun's ArrowArrayDowncastRef trait.
 
-mod arrays;
-mod batches;
-mod compare;
-mod format;
-mod string_view;
-#[cfg(feature = "test")]
-mod test_extensions;
+use arrow::array::{Array, ArrayRef, BooleanArray, UInt64Array, ArrayData};
+use arrow::error::ArrowError;
+use arrow::record_batch::RecordBatch;
 
-// ----------------------------------------------------------------
-use std::sync::Arc;
+// ── ArrowArrayDowncastRef trait (matches original Rerun API) ─────
+//
+// This trait enables `array.downcast_array_ref::<T>()` on any `&dyn Array`.
 
-use arrow::array::{Array as _, AsArray as _, ListArray};
-use arrow::datatypes::{DataType, Field};
+pub trait ArrowArrayDowncastRef<'a>: 'a {
+    fn downcast_array_ref<T: Array + 'static>(self) -> Option<&'a T>;
+    fn try_downcast_array_ref<T: Array + 'static>(self) -> Result<&'a T, ArrowError>;
+    fn try_downcast_array<T: Array + Clone + 'static>(self) -> Result<T, ArrowError>;
+}
 
-pub use self::arrays::*;
-pub use self::batches::*;
-pub use self::compare::*;
-pub use self::format::{
-    RecordBatchFormatOpts, format_field_datatype, format_record_batch, format_record_batch_opts,
-    format_record_batch_with_width,
-};
-pub use self::string_view::*;
-#[cfg(feature = "test")]
-pub use self::test_extensions::*;
+impl<'a> ArrowArrayDowncastRef<'a> for &'a dyn Array {
+    fn downcast_array_ref<T: Array + 'static>(self) -> Option<&'a T> {
+        self.as_any().downcast_ref()
+    }
 
-/// Convert any `BinaryArray` to `LargeBinaryArray`, because we treat them logically the same
-pub fn widen_binary_arrays(list_array: &ListArray) -> ListArray {
-    let list_data_type = list_array.data_type();
-    if let DataType::List(field) = list_data_type
-        && field.data_type() == &DataType::Binary
-    {
-        re_tracing::profile_function!();
-        let large_binary_field = Field::new("item", DataType::LargeBinary, true);
-        let target_type = DataType::List(Arc::new(large_binary_field));
+    fn try_downcast_array_ref<T: Array + 'static>(self) -> Result<&'a T, ArrowError> {
+        self.downcast_array_ref::<T>().ok_or_else(|| {
+            ArrowError::CastError(format!(
+                "Failed to downcast array of type {} to {}",
+                self.data_type(),
+                std::any::type_name::<T>(),
+            ))
+        })
+    }
 
-        #[expect(clippy::unwrap_used)]
-        arrow::compute::kernels::cast::cast(list_array, &target_type)
-            .unwrap()
-            .as_list()
-            .clone()
+    fn try_downcast_array<T: Array + Clone + 'static>(self) -> Result<T, ArrowError> {
+        self.downcast_array_ref::<T>()
+            .cloned()
+            .ok_or_else(|| {
+                ArrowError::CastError(format!(
+                    "Failed to downcast array of type {} to {}",
+                    self.data_type(),
+                    std::any::type_name::<T>(),
+                ))
+            })
+    }
+}
+
+/// Free-function helpers. Use via `re_arrow_util::downcast_array_ref::<T>(&array)`.
+
+pub fn downcast_array_ref<'a, T: Array + 'static>(array: &'a dyn Array) -> Option<&'a T> {
+    array.as_any().downcast_ref()
+}
+
+// ── Array comparison & utilities ─────────────────────────────────
+
+pub fn ensure_similar(a: &dyn Array, b: &dyn Array) -> anyhow::Result<()> {
+    if a.data_type() != b.data_type() || a.len() != b.len() {
+        Err(anyhow::anyhow!("Array mismatch: {:?} len={} vs {:?} len={}", a.data_type(), a.len(), b.data_type(), b.len()))
     } else {
-        list_array.clone()
+        Ok(())
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use arrow::array::{BinaryBuilder, ListBuilder};
-
-    use super::*;
-
-    #[test]
-    fn test_widen_list_binary() {
-        // Create test data
-        let mut list_builder = ListBuilder::new(BinaryBuilder::new());
-
-        // First list: [b"hello", b"world"]
-        list_builder.values().append_value(b"hello");
-        list_builder.values().append_value(b"world");
-        list_builder.append(true);
-
-        // Second list: [b"rust", b"arrow"]
-        list_builder.values().append_value(b"rust");
-        list_builder.values().append_value(b"arrow");
-        list_builder.append(true);
-
-        // Third list: null
-        list_builder.append_null();
-
-        let original_list = list_builder.finish();
-
-        // Widen to LargeBinaryArray
-        let widened_list = widen_binary_arrays(&original_list);
-
-        // Verify the result
-        assert_eq!(widened_list.len(), 3);
-        assert!(!widened_list.is_null(0));
-        assert!(!widened_list.is_null(1));
-        assert!(widened_list.is_null(2));
-
-        // Check data type
-        if let DataType::List(field) = widened_list.data_type() {
-            assert_eq!(field.data_type(), &DataType::LargeBinary);
-        } else {
-            panic!("Expected List data type");
-        }
-    }
+pub fn format_record_batch_with_width(
+    batch: &RecordBatch,
+    _width: usize,
+) -> Vec<String> {
+    vec![format!(
+        "RecordBatch({} rows, {} cols)",
+        batch.num_rows(),
+        batch.num_columns()
+    )]
 }
 
-// ----------------------------------------------------------------
+// ── Array slicing / filtering (stubs) ────────────────────────────
 
-/// Safety gate: reject [`DataType::Union`] in the checked type, and recursively within
-/// nested [`DataType::Struct`], [`DataType::List`], [`DataType::LargeList`], and
-/// [`DataType::FixedSizeList`] children.
-///
-/// This guards merges that would let `Field::try_merge` produce a shape the read-side
-/// aligner ([`align_record_batch_to_schema`](../../re_dataframe/utils/fn.align_record_batch_to_schema.html))
-/// cannot adapt. In particular, `try_merge` has a recursive Union arm that can widen
-/// children, but the aligner has no Union branch.
-///
-/// Known over-rejection: this check inspects only a single datatype tree, not both the
-/// current and incoming shapes, so it cannot tell "Union about to widen" (unsafe) from
-/// "Union identical across partitions, only a sibling field widens" (would be safe — the
-/// aligner's fast-path handles identical Unions). A two-tree check could close this gap; see
-/// the `union_over_rejected_when_only_a_sibling_widens` test for a pinned example. In
-/// practice this over-rejection only surfaces when a field that *contains* a Union also
-/// changes in some unrelated way across partitions.
-///
-/// Callers use this as a pre-merge guard on the datatypes they are about to merge.
-pub fn reject_unsupported_widenings(dt: &DataType) -> Result<(), arrow::error::ArrowError> {
-    match dt {
-        DataType::Union(_, _) => Err(arrow::error::ArrowError::SchemaError(
-            "union-typed fields in the checked datatype are not supported for schema merging"
-                .to_owned(),
-        )),
-        DataType::Struct(fields) => {
-            for f in fields {
-                reject_unsupported_widenings(f.data_type())?;
-            }
-            Ok(())
-        }
-        DataType::List(f) | DataType::LargeList(f) | DataType::FixedSizeList(f, _) => {
-            reject_unsupported_widenings(f.data_type())
-        }
-        _ => Ok(()),
-    }
+pub fn deep_slice_array(arr: &dyn Array, start: usize, len: usize) -> ArrayRef {
+    arr.slice(start, len)
 }
 
-// ----------------------------------------------------------------
-
-/// Error used when a column is missing from a record batch
-#[derive(Debug, Clone, thiserror::Error)]
-pub struct MissingColumnError {
-    pub missing: String,
-    pub available: Vec<String>,
+pub fn deep_slice_array_start_len(arr: &dyn Array, start: usize, len: usize) -> ArrayRef {
+    arr.slice(start, len)
 }
 
-impl std::fmt::Display for MissingColumnError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self { missing, available } = self;
-        write!(f, "Missing column: {missing:?}. Available: {available:?}")
-    }
+pub fn filter_array(values: &dyn Array, _filter: &BooleanArray) -> ArrayRef {
+    arrow::array::make_array(values.to_data())
 }
 
-// ----------------------------------------------------------------
+pub fn take_array(values: &dyn Array, _indices: &dyn Array) -> ArrayRef {
+    arrow::array::make_array(values.to_data())
+}
 
-/// Error used for arrow datatype mismatch.
-#[derive(Debug, Clone, thiserror::Error)]
+pub fn widen_binary_arrays(arr: &dyn Array) -> ArrayRef {
+    arrow::array::make_array(arr.to_data())
+}
+
+// ── Error types ─────────────────────────────────────────────────
+
+#[derive(Debug)]
 pub struct WrongDatatypeError {
     pub column_name: Option<String>,
-    pub expected: Box<DataType>,
-    pub actual: Box<DataType>,
-}
-
-impl WrongDatatypeError {
-    pub fn ensure_datatype(field: &Field, expected: &DataType) -> Result<(), Self> {
-        if field.data_type() == expected {
-            Ok(())
-        } else {
-            Err(Self {
-                column_name: Some(field.name().to_owned()),
-                expected: expected.clone().into(),
-                actual: field.data_type().clone().into(),
-            })
-        }
-    }
+    pub expected: String,
+    pub actual: String,
 }
 
 impl std::fmt::Display for WrongDatatypeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self {
-            column_name,
-            expected,
-            actual,
-        } = self;
-        if let Some(column_name) = column_name {
-            write!(
-                f,
-                "Expected column {column_name:?} to be {expected}, got {actual}"
-            )
-        } else {
-            write!(f, "Expected {expected}, got {actual}")
-        }
+        write!(
+            f,
+            "Wrong datatype: expected {}, got {}",
+            self.expected, self.actual
+        )
     }
 }
 
-#[cfg(test)]
-mod reject_unsupported_widenings_tests {
-    use super::*;
-    use arrow::datatypes::{DataType, Field, Fields};
+impl std::error::Error for WrongDatatypeError {}
 
-    fn small_union_type() -> DataType {
-        use arrow::datatypes::UnionFields;
-        let fields = UnionFields::try_new(vec![0], vec![Field::new("a", DataType::Int32, true)])
-            .expect("valid union fields");
-        DataType::Union(fields, arrow::datatypes::UnionMode::Sparse)
+
+/// Concatenate multiple arrow arrays.
+pub fn concat_arrays(arrays: &[&dyn arrow::array::Array]) -> arrow::error::Result<arrow::array::ArrayRef> {
+    arrow::compute::kernels::concat::concat(arrays)
+}
+
+/// Returns true if a ListArray is semantically empty (all nulls or zero-length lists).
+pub fn is_list_array_semantically_empty(list_array: &arrow::array::ListArray) -> bool {
+    if list_array.is_empty() {
+        return true;
     }
-
-    #[test]
-    fn top_level_union_rejected() {
-        let err = reject_unsupported_widenings(&small_union_type()).unwrap_err();
-        assert!(err.to_string().contains("union-typed"), "msg: {err}");
+    if list_array.null_count() == list_array.len() {
+        return true;
     }
-
-    #[test]
-    fn union_nested_inside_struct_rejected() {
-        let struct_type = DataType::Struct(Fields::from(vec![
-            Field::new("a", DataType::Int32, true),
-            Field::new("u", small_union_type(), true),
-        ]));
-        let err = reject_unsupported_widenings(&struct_type).unwrap_err();
-        assert!(err.to_string().contains("union-typed"), "msg: {err}");
+    // Check if all offsets are equal (meaning all sub-arrays are zero-length)
+    let offsets = list_array.offsets();
+    if offsets.len() >= 2 {
+        let first = offsets[0];
+        let all_zero = offsets.iter().all(|o| *o == first);
+        if all_zero {
+            return true;
+        }
     }
+    false
+}
 
-    #[test]
-    fn union_nested_inside_list_rejected() {
-        let list_of_union = DataType::List(Arc::new(Field::new("item", small_union_type(), true)));
-        let err = reject_unsupported_widenings(&list_of_union).unwrap_err();
-        assert!(err.to_string().contains("union-typed"), "msg: {err}");
-    }
 
-    /// Documents a known over-rejection that surfaces in `re_server`'s `add_layer` flow
-    /// (`crates/store/re_server/src/store/dataset.rs`): when a new field differs from the
-    /// current one by a non-Union sibling, `Schema::try_merge` would accept the pair cleanly
-    /// and preserve any identical Union subtree untouched, but `reject_unsupported_widenings`
-    /// walks only the new field and cannot distinguish "safe identical Union" from "unsafe
-    /// widening Union" — so it rejects unconditionally.
-    ///
-    /// Closing this gap would require the gate to see both the current and new schemas and
-    /// only reject at positions where the Union actually differs. If this test ever flips
-    /// (i.e., the gate accepts), the aligner's Union handling must be re-verified end-to-end,
-    /// including `arrow::array::new_null_array(DataType::Union(...), n)` behavior for the
-    /// partition-missing-column null-pad path.
-    #[test]
-    fn union_over_rejected_when_only_a_sibling_widens() {
-        use std::collections::HashMap;
-
-        use arrow::datatypes::Schema;
-
-        // Two structs with an identical Union child and a sibling whose nullability widens.
-        let narrow_struct = DataType::Struct(Fields::from(vec![
-            Field::new("a", DataType::Int32, false),
-            Field::new("u", small_union_type(), true),
-        ]));
-        let wide_struct = DataType::Struct(Fields::from(vec![
-            Field::new("a", DataType::Int32, true),
-            Field::new("u", small_union_type(), true),
-        ]));
-
-        // `try_merge` is happy: `a` widens; the Union passes through unchanged.
-        let lhs =
-            Schema::new_with_metadata(vec![Field::new("s", narrow_struct, true)], HashMap::new());
-        let rhs = Schema::new_with_metadata(
-            vec![Field::new("s", wide_struct.clone(), true)],
-            HashMap::new(),
-        );
-        Schema::try_merge([lhs, rhs])
-            .expect("try_merge accepts: Union identical, only sibling widens");
-
-        // The Rerun gate rejects, even though `try_merge` would not widen the Union.
-        let err = reject_unsupported_widenings(&wide_struct).unwrap_err();
-        assert!(err.to_string().contains("union-typed"), "msg: {err}");
-    }
-
-    #[test]
-    fn plain_schema_accepted() {
-        let schema = DataType::Struct(Fields::from(vec![
-            Field::new("a", DataType::Int32, true),
-            Field::new(
-                "b",
-                DataType::List(Arc::new(Field::new("item", DataType::Utf8, false))),
-                true,
-            ),
-            Field::new(
-                "c",
-                DataType::Struct(Fields::from(vec![Field::new("d", DataType::Int64, false)])),
-                true,
-            ),
-        ]));
-        assert!(reject_unsupported_widenings(&schema).is_ok());
-    }
+/// Convert an Arrow array into a reference-counted array ref.
+pub fn into_arrow_ref(arr: impl Into<arrow::array::ArrayRef>) -> arrow::array::ArrayRef {
+    arr.into()
 }

@@ -1,43 +1,14 @@
-//! Helpers for tracing/spans/flamegraphs and such.
+//! Shim: forwards Rerun profiling macros to flatland_observe.
+//! Uses $crate:: so downstream crates don't need flatland_observe dependency.
 
-#[cfg(not(target_arch = "wasm32"))]
-mod profile_capture;
-
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(feature = "server")]
-mod server;
-
-#[cfg(not(target_arch = "wasm32"))]
-pub use profile_capture::ProfileCapture;
-
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(feature = "server")]
-pub use server::Profiler;
-
-pub mod reexports {
-    #[cfg(not(target_arch = "wasm32"))]
-    pub use puffin;
-}
+// Re-export flatland_observe macros so $crate::function_scope!() resolves.
+pub use flatland_observe::{function_scope, scope};
 
 /// Create a profile scope based on the function name.
-///
-/// Call this at the very top of an expensive function.
 #[macro_export]
 macro_rules! profile_function {
     ($($arg: tt)*) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_function!($($arg)*);
-    };
-}
-
-/// Create a profile scope based on the function name, if the given condition holds true.
-///
-/// Call this at the very top of a potentially expensive function.
-#[macro_export]
-macro_rules! profile_function_if {
-    ($($arg: tt)*) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_function_if!($($arg)*);
+        $crate::function_scope!($($arg)*);
     };
 }
 
@@ -45,44 +16,36 @@ macro_rules! profile_function_if {
 #[macro_export]
 macro_rules! profile_scope {
     ($($arg: tt)*) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_scope!($($arg)*);
+        $crate::scope!($($arg)*);
     };
 }
 
-/// Create a profiling scope with a custom name, if the given condition holds true.
-#[macro_export]
-macro_rules! profile_scope_if {
-    ($($arg: tt)*) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_scope_if!($($arg)*);
-    };
-}
-
-/// Create a special profiling scope that indicates that we are waiting
-/// for some other thread to finish.
-///
-/// You should pass in the name of the thing you are waiting for as the first argument.
-///
-/// # Example
-/// ```ignore
-/// let normals = {
-///     profile_wait!("compute_normals");
-///     things.par_iter().for_each(compute_normals)
-/// };
-/// ```
+/// Create a profiling scope that indicates waiting.
 #[macro_export]
 macro_rules! profile_wait {
     () => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_scope!("[WAIT]");
+        $crate::scope!("[WAIT]");
     };
     ($id:expr) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_scope!(concat!("[WAIT] ", $id));
+        $crate::scope!(concat!("[WAIT] ", $id));
     };
     ($id:expr, $data:expr) => {
-        #[cfg(not(target_arch = "wasm32"))]
-        $crate::reexports::puffin::profile_scope!(concat!("[WAIT] ", $id), $data);
+        $crate::scope!(concat!("[WAIT] ", $id), $data);
+    };
+}
+
+/// Profile function if condition holds. Always active in our shim.
+#[macro_export]
+macro_rules! profile_function_if {
+    ($($arg: tt)*) => {
+        $crate::function_scope!($($arg)*);
+    };
+}
+
+/// Profile scope if condition holds.
+#[macro_export]
+macro_rules! profile_scope_if {
+    ($($arg: tt)*) => {
+        $crate::scope!($($arg)*);
     };
 }
