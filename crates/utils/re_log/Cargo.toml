@@ -3,6 +3,10 @@ name = "re_log"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = []
+setup = []
+
 [dependencies]
 tracing.workspace = true
 log-once.workspace = true
