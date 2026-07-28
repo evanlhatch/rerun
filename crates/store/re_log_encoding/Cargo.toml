@@ -4,6 +4,11 @@ version.workspace = true
 edition.workspace = true
 publish = false
 
+[features]
+default = []
+decoder = []
+encoder = []
+
 [dependencies]
 re_log.workspace = true
 re_log_types.workspace = true
