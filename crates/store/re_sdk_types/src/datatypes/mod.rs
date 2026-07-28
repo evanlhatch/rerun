@@ -50,7 +50,6 @@ mod spherical_harmonics3_ext;
 mod tensor_buffer;
 mod tensor_buffer_ext;
 mod tensor_data;
-mod tensor_data_ext;
 mod tensor_dimension_index_selection;
 mod tensor_dimension_selection;
 mod tensor_dimension_selection_ext;
