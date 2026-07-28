@@ -291,3 +291,11 @@ mod tests {
         );
     }
 }
+
+impl From<re_types_core::datatypes::TimeInt> for TimeInt {
+    #[inline]
+    fn from(value: re_types_core::datatypes::TimeInt) -> Self {
+        // Convert via i64: re_types_core TimeInt wraps an i64 as public .0
+        Self(NonMinI64::new(value.0))
+    }
+}

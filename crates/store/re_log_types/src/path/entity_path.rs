@@ -103,11 +103,6 @@ pub struct EntityPath {
 }
 
 impl EntityPath {
-    pub fn parse_forgiving(input: &str) -> Self {
-        Self::parse_strict(input).unwrap_or_else(|_| Self::root())
-    }
-
-    pub fn parse_strict(input: &str) -> Result<Self, crate::PathParseError> {
         Self::parse_rel(input)
     }
 

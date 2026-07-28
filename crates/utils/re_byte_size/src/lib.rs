@@ -79,3 +79,32 @@ impl<T: SizeBytes> SizeBytes for Option<T> {
         }
     }
 }
+
+/// ── parking_lot guard impls (needed for re_log_types) ──────────
+
+impl<T> SizeBytes for parking_lot::RwLockReadGuard<'_, T>
+where
+    T: SizeBytes + ?Sized,
+{
+    fn heap_size_bytes(&self) -> u64 {
+        (**self).heap_size_bytes()
+    }
+}
+
+impl<T> SizeBytes for parking_lot::RwLockWriteGuard<'_, T>
+where
+    T: SizeBytes + ?Sized,
+{
+    fn heap_size_bytes(&self) -> u64 {
+        (**self).heap_size_bytes()
+    }
+}
+
+impl<T> SizeBytes for parking_lot::MutexGuard<'_, T>
+where
+    T: SizeBytes + ?Sized,
+{
+    fn heap_size_bytes(&self) -> u64 {
+        (**self).heap_size_bytes()
+    }
+}
