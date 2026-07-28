@@ -28,6 +28,7 @@ use ::re_types_core::{DeserializationError, DeserializationResult};
 #[derive(Clone, PartialEq, ::re_byte_size::SizeBytes)]
 pub enum TensorBuffer {
     /// 8bit unsigned integer.
+    #[default]
     U8(::arrow::buffer::ScalarBuffer<u8>),
 
     /// 16bit unsigned integer.

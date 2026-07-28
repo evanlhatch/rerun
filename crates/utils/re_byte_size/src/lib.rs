@@ -62,3 +62,14 @@ pub trait MemUsageTreeCapture {
     fn capture_mem_usage_tree(&self) -> MemUsageTree;
 }
 
+
+
+impl<T: SizeBytes> SizeBytes for Option<T> {
+    #[inline]
+    fn heap_size_bytes(&self) -> u64 {
+        match self {
+            Some(v) => v.heap_size_bytes(),
+            None => 0,
+        }
+    }
+}

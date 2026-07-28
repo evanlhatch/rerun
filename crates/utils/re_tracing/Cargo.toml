@@ -6,3 +6,7 @@ edition.workspace = true
 [dependencies]
 tracing.workspace = true
 flatland-observe = "0.1.0"
+
+puffin = { workspace = true, optional = true }
+puffin_http = { workspace = true, optional = true }
+rfd = { workspace = true, optional = true }

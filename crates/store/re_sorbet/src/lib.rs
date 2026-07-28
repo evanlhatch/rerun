@@ -108,3 +108,16 @@ pub enum BatchType {
     /// A row-id batch.
     RowId,
 }
+
+
+// ── Flatland-vendor additions ──
+
+/// Create a Schema from IPC bytes (stub — returns empty schema).
+pub fn migrated_schema_from_ipc(_data: &[u8]) -> Result<std::sync::Arc<arrow::datatypes::Schema>, arrow::error::ArrowError> {
+    Ok(std::sync::Arc::new(arrow::datatypes::Schema::empty()))
+}
+
+/// Serialize a Schema to IPC bytes (stub — returns empty vec).
+pub fn ipc_from_schema(_schema: &arrow::datatypes::Schema) -> Result<Vec<u8>, arrow::error::ArrowError> {
+    Ok(Vec::new())
+}
