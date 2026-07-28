@@ -35,6 +35,14 @@ pub trait ResultExt<T, E> {
     where
         C: std::fmt::Display + Send + Sync + 'static,
         F: FnOnce() -> C;
+
+    /// Logs an error if the result is an error and returns the result.
+    #[track_caller]
+    fn ok_or_log_error(self) -> Option<T>;
+
+    /// Logs an error if the result is an error and returns the result, but only once.
+    #[track_caller]
+    fn ok_or_log_error_once(self) -> Option<T>;
 }
 
 impl<T, E: std::fmt::Display + Send + Sync + 'static> ResultExt<T, E> for Result<T, E> {
@@ -44,5 +52,29 @@ impl<T, E: std::fmt::Display + Send + Sync + 'static> ResultExt<T, E> for Result
         F: FnOnce() -> C,
     {
         self.map_err(|e| anyhow::anyhow!("{}", f()).context(e))
+    }
+
+    #[track_caller]
+    fn ok_or_log_error(self) -> Option<T> {
+        match self {
+            Ok(t) => Some(t),
+            Err(err) => {
+                let loc = std::panic::Location::caller();
+                log::error!("{}:{} {err}", loc.file(), loc.line());
+                None
+            }
+        }
+    }
+
+    #[track_caller]
+    fn ok_or_log_error_once(self) -> Option<T> {
+        match self {
+            Ok(t) => Some(t),
+            Err(err) => {
+                let loc = std::panic::Location::caller();
+                crate::error_once!("{}:{} {err}", loc.file(), loc.line());
+                None
+            }
+        }
     }
 }

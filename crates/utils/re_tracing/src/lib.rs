@@ -7,16 +7,22 @@ pub use flatland_observe::{function_scope, scope};
 /// Create a profile scope based on the function name.
 #[macro_export]
 macro_rules! profile_function {
-    ($($arg: tt)*) => {
-        $crate::function_scope!($($arg)*);
+    () => {
+        $crate::function_scope!();
+    };
+    ($tag:expr) => {
+        $crate::function_scope!($tag);
     };
 }
 
 /// Create a profiling scope with a custom name.
 #[macro_export]
 macro_rules! profile_scope {
-    ($($arg: tt)*) => {
-        $crate::scope!($($arg)*);
+    ($name:expr) => {
+        $crate::scope!($name);
+    };
+    ($name:expr, $tag:expr) => {
+        $crate::scope!($name, $tag);
     };
 }
 
@@ -34,18 +40,32 @@ macro_rules! profile_wait {
     };
 }
 
-/// Profile function if condition holds. Always active in our shim.
+/// Profile function if condition holds.
 #[macro_export]
 macro_rules! profile_function_if {
-    ($($arg: tt)*) => {
-        $crate::function_scope!($($arg)*);
+    ($cond:expr) => {
+        if $cond {
+            $crate::function_scope!();
+        }
+    };
+    ($cond:expr, $tag:expr) => {
+        if $cond {
+            $crate::function_scope!($tag);
+        }
     };
 }
 
 /// Profile scope if condition holds.
 #[macro_export]
 macro_rules! profile_scope_if {
-    ($($arg: tt)*) => {
-        $crate::scope!($($arg)*);
+    ($cond:expr, $name:expr) => {
+        if $cond {
+            $crate::scope!($name);
+        }
+    };
+    ($cond:expr, $name:expr, $tag:expr) => {
+        if $cond {
+            $crate::scope!($name, $tag);
+        }
     };
 }
