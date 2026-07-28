@@ -23,6 +23,32 @@ pub fn is_rerun_very_strict() -> bool {
     false
 }
 
+/// Check environment variable flag ("0"/"false"/"no"/"off" = false, "1"/"true"/"yes"/"on" = true).
+pub fn env_var_flag(var_name: &str) -> Option<bool> {
+    match std::env::var(var_name)
+        .ok()?
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "" => None,
+        "0" | "false" | "no" | "off" => Some(false),
+        "1" | "true" | "yes" | "on" => Some(true),
+        value => {
+            crate::warn_once!(
+                "Ignoring unrecognized value {value:?} for environment variable {var_name:?} \
+                    (expected one of: 1/true/yes/on, 0/false/no/off); falling back to the default."
+            );
+            None
+        }
+    }
+}
+
+/// Check if an environment variable is set to a truthy value.
+pub fn env_var_is_truthy(var_name: &str) -> bool {
+    env_var_flag(var_name).unwrap_or(false)
+}
+
 pub fn setup_logging() -> Result<(), Box<dyn std::error::Error>> {
     // flatland_observe subscriber would be installed by the app.
     // This is a no-op for vendored crates that don't need it.

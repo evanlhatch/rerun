@@ -34,6 +34,12 @@ impl_size_bytes_for_primitive!(u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, b
 
 // ── Standard type impls (needed by re_video and other vendored crates) ──────
 
+impl SizeBytes for String {
+    fn heap_size_bytes(&self) -> u64 {
+        self.capacity() as u64
+    }
+}
+
 impl<T: SizeBytes> SizeBytes for Vec<T> {
     fn heap_size_bytes(&self) -> u64 {
         // Capacity * element size for the backing buffer,

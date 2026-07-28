@@ -39,8 +39,4 @@ impl From<ComponentIdentifier> for Utf8 {
     }
 }
 
-impl std::fmt::Debug for Utf8 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.as_str())
-    }
-}
+
