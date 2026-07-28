@@ -60,7 +60,7 @@ impl<T, E: std::fmt::Display + Send + Sync + 'static> ResultExt<T, E> for Result
             Ok(t) => Some(t),
             Err(err) => {
                 let loc = std::panic::Location::caller();
-                log::error!("{}:{} {err}", loc.file(), loc.line());
+                tracing::error!("{}:{} {err}", loc.file(), loc.line());
                 None
             }
         }
