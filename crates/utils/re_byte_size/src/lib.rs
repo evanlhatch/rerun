@@ -22,6 +22,27 @@ pub trait SizeBytes {
 /// A node in a memory usage tree. Minimal stub - used as trait in vendored code.
 pub trait MemUsageNode {}
 
+// ── Standard type impls (needed by re_video and other vendored crates) ──────
+
+impl<T: SizeBytes> SizeBytes for Vec<T> {
+    fn heap_size_bytes(&self) -> u64 {
+        // Capacity * element size for the backing buffer,
+        // plus per-element heap for nested allocations.
+        let capacity_bytes = self.capacity() as u64 * std::mem::size_of::<T>() as u64;
+        let elements_bytes: u64 = self.iter().map(|e| e.heap_size_bytes()).sum();
+        capacity_bytes + elements_bytes
+    }
+}
+
+impl<T: SizeBytes, E: SizeBytes> SizeBytes for Result<T, E> {
+    fn heap_size_bytes(&self) -> u64 {
+        match self {
+            Ok(t) => t.heap_size_bytes(),
+            Err(e) => e.heap_size_bytes(),
+        }
+    }
+}
+
 /// A tree of memory usage nodes. Minimal stub.
 pub struct MemUsageTree;
 
