@@ -408,7 +408,7 @@ signature = { version = "2.2", features = [
   "std",
 ] } # pinned by `jsonwebtoken` (^2.2); see hmac note.
 similar-asserts = "1.7" # 2.0 pulls in `similar` 3.x, duplicating the `similar` 2.x that `insta` needs (cargo-deny ban). Bump once `insta` moves to `similar` 3.
-slotmap = { version = "1.1.2", features = ["serde", "arc_lock"] }
+slotmap = { version = "1.1", features = ["serde"] }
 smallvec = { version = "1.15", features = ["const_generics", "union"] }
 static_assertions = "1.1"
 stl_io = "0.11.0"
