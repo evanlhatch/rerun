@@ -11,14 +11,13 @@ pub fn derive_size_bytes(input: TokenStream) -> TokenStream {
     let name = input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    // Add T: SizeBytes bound to each generic type parameter.
-    let generics = &input.generics;
-    let type_params = generics.type_params().map(|tp| tp.ident.clone());
-    let bounds = type_params.map(|t| {
+    // Collect bounds into Vec to check length and iterate multiple times.
+    let bounds: Vec<_> = input.generics.type_params().map(|tp| {
+        let t = &tp.ident;
         quote! { #t: re_byte_size::SizeBytes }
-    });
+    }).collect();
 
-    let expanded = if bounds.len() == 0 {
+    let expanded = if bounds.is_empty() {
         quote! {
             impl #impl_generics re_byte_size::SizeBytes for #name #ty_generics #where_clause {}
         }
