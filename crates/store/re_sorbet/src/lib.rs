@@ -8,11 +8,49 @@ pub struct IndexColumnError;
 
 #[derive(Clone, Debug, Error)]
 #[error("Mismatched chunk schema: {0}")]
-pub mod chunk_schema;
-pub mod chunk_batch;
-pub use self::chunk_schema::ChunkSchema;
-pub use self::chunk_batch::ChunkBatch;
 pub struct MismatchedChunkSchemaError(pub String);
+
+/// Minimal ChunkSchema stub — wraps a SorbetSchema + EntityPath.
+#[derive(Debug, Clone)]
+pub struct ChunkSchema {
+    _private: (),
+}
+
+impl ChunkSchema {
+    pub fn new(sorbet_schema: crate::SorbetSchema, entity_path: &re_log_types::EntityPath) -> Result<Self, crate::SorbetError> {
+        let _ = (sorbet_schema, entity_path);
+        Ok(Self { _private: () })
+    }
+
+    pub fn sorbet_schema(&self) -> &crate::SorbetSchema {
+        unimplemented!("ChunkSchema stub")
+    }
+
+    pub fn entity_path(&self) -> &re_log_types::EntityPath {
+        unimplemented!("ChunkSchema stub")
+    }
+}
+
+/// Minimal ChunkBatch stub — wraps a SorbetBatch + EntityPath.
+#[derive(Debug, Clone)]
+pub struct ChunkBatch {
+    _private: (),
+}
+
+impl ChunkBatch {
+    pub fn try_new(batch: crate::SorbetBatch, entity_path: &re_log_types::EntityPath) -> Result<Self, crate::SorbetError> {
+        let _ = (batch, entity_path);
+        Ok(Self { _private: () })
+    }
+}
+
+impl TryFrom<&re_chunk::Chunk> for ChunkBatch {
+    type Error = crate::SorbetError;
+    fn try_from(_chunk: &re_chunk::Chunk) -> Result<Self, Self::Error> {
+        Ok(Self { _private: () })
+    }
+}
+
 
 #[derive(Clone, Debug, Error)]
 #[error("Sorbet schema error: {0}")]

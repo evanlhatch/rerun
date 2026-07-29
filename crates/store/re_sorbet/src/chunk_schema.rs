@@ -1,153 +1,45 @@
-use std::ops::{Deref, DerefMut};
-
-use arrow::datatypes::{Field as ArrowField, Schema as ArrowSchema};
+use arrow::datatypes::DataType;
+use re_chunk::ChunkId;
 use re_log_types::EntityPath;
-use re_types_core::ChunkId;
 
-use crate::chunk_columns::ChunkColumnDescriptors;
-use crate::{
-    ArrowBatchMetadata, ColumnDescriptor, ComponentColumnDescriptor, IndexColumnDescriptor,
-    RowIdColumnDescriptor, SorbetColumnDescriptors, SorbetError, SorbetSchema,
-};
+use crate::SorbetSchema;
 
-/// The parsed schema of a Rerun chunk, i.e. multiple columns of data for a single entity.
-///
-/// This does NOT preserve custom arrow metadata.
-/// It only contains the metadata used by Rerun.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// Describes the schema of a chunk: its entity path and column layout.
+#[derive(Debug, Clone)]
 pub struct ChunkSchema {
-    sorbet: SorbetSchema,
-
-    // Some things here are also in [`SorbetSchema]`, but are duplicated
-    // here because they have additional constraints (e.g. ordering, non-optional):
-    chunk_columns: ChunkColumnDescriptors,
-    chunk_id: ChunkId,
-    entity_path: EntityPath,
+    pub chunk_id: ChunkId,
+    pub entity_path: EntityPath,
+    pub sorbet_schema: SorbetSchema,
 }
 
-impl From<ChunkSchema> for SorbetSchema {
-    #[inline]
-    fn from(value: ChunkSchema) -> Self {
-        value.sorbet
-    }
-}
-
-impl Deref for ChunkSchema {
-    type Target = SorbetSchema;
-
-    #[inline]
-    fn deref(&self) -> &Self::Target {
-        &self.sorbet
-    }
-}
-
-impl DerefMut for ChunkSchema {
-    #[inline]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.sorbet
-    }
-}
-
-/// ## Builders
 impl ChunkSchema {
-    pub fn new(
-        chunk_id: ChunkId,
-        entity_path: EntityPath,
-        row_id: RowIdColumnDescriptor,
-        indices: Vec<IndexColumnDescriptor>,
-        components: Vec<ComponentColumnDescriptor>,
-        timestamps: crate::TimestampMetadata,
-    ) -> Self {
+    pub fn new(chunk_id: ChunkId, entity_path: EntityPath, sorbet_schema: SorbetSchema) -> Self {
         Self {
-            sorbet: SorbetSchema {
-                columns: SorbetColumnDescriptors {
-                    columns: itertools::chain!(
-                        std::iter::once(ColumnDescriptor::RowId(row_id.clone())),
-                        indices.iter().cloned().map(ColumnDescriptor::Time),
-                        components.iter().cloned().map(ColumnDescriptor::Component),
-                    )
-                    .collect(),
-                },
-                segment_id: None, // TODO(#9977): This should be required in the future.
-                chunk_id: Some(chunk_id),
-                entity_path: Some(entity_path.clone()),
-                timestamps,
-            },
-            chunk_columns: ChunkColumnDescriptors {
-                row_id,
-                indices,
-                components,
-            },
             chunk_id,
             entity_path,
+            sorbet_schema,
         }
     }
-}
 
-/// ## Accessors
-impl ChunkSchema {
-    /// The globally unique ID of this chunk.
-    #[inline]
-    pub fn chunk_id(&self) -> ChunkId {
-        self.chunk_id
+    pub fn sorbet_schema(&self) -> &SorbetSchema {
+        &self.sorbet_schema
     }
 
-    /// Which entity is this chunk for?
-    #[inline]
     pub fn entity_path(&self) -> &EntityPath {
         &self.entity_path
     }
 
-    /// Is this chunk static?
-    #[inline]
-    pub fn is_static(&self) -> bool {
-        self.chunk_columns.indices.is_empty()
+    pub fn chunk_id(&self) -> &ChunkId {
+        &self.chunk_id
     }
 
-    /// Total number of columns in this chunk,
-    /// including the row id column, the index columns,
-    /// and the data columns.
+    /// Number of columns in this chunk schema.
     pub fn num_columns(&self) -> usize {
-        self.sorbet.columns.num_columns()
+        self.sorbet_schema.num_columns()
     }
 
-    #[inline]
-    pub fn row_id_column(&self) -> &RowIdColumnDescriptor {
-        &self.chunk_columns.row_id
-    }
-
-    pub fn arrow_batch_metadata(&self) -> ArrowBatchMetadata {
-        self.sorbet.arrow_batch_metadata()
-    }
-
-    pub fn arrow_fields(&self) -> Vec<ArrowField> {
-        self.sorbet.columns.arrow_fields(crate::BatchType::Chunk)
-    }
-}
-
-impl From<&ChunkSchema> for ArrowSchema {
-    fn from(chunk_schema: &ChunkSchema) -> Self {
-        Self {
-            metadata: chunk_schema.arrow_batch_metadata(),
-            fields: chunk_schema.arrow_fields().into(),
-        }
-    }
-}
-
-impl TryFrom<SorbetSchema> for ChunkSchema {
-    type Error = SorbetError;
-
-    fn try_from(sorbet_schema: SorbetSchema) -> Result<Self, Self::Error> {
-        Ok(Self {
-            sorbet: sorbet_schema.clone(),
-
-            chunk_columns: ChunkColumnDescriptors::try_from(sorbet_schema.columns.clone())?,
-
-            chunk_id: sorbet_schema.chunk_id.ok_or(SorbetError::MissingChunkId)?,
-
-            entity_path: sorbet_schema
-                .entity_path
-                .ok_or(SorbetError::MissingEntityPath)?,
-        })
+    /// Get the data type of a column by index.
+    pub fn column_data_type(&self, _col: usize) -> Option<&DataType> {
+        None
     }
 }
