@@ -117,7 +117,7 @@ fn migrate_transform3d_axis_length(batch: RecordBatch) -> RecordBatch {
 
     re_log::debug_once!("Migrating Transform3D:axis_length to TransformAxes3D:axis_length");
 
-    let (schema, columns, row_count) = batch.into_parts();
+    let (schema, columns, row_count) = (batch.schema().clone(), batch.columns().to_vec(), batch.num_rows());
 
     let new_fields = schema.fields().iter().map(|field| {
         if let Some(val) = field.metadata().get("rerun:component")
@@ -169,7 +169,7 @@ fn migrate_coordinate_frame(batch: RecordBatch) -> RecordBatch {
 
     re_log::debug_once!("Migrating CoordinateFrame:frame_id to CoordinateFrame:frame");
 
-    let (schema, columns, row_count) = batch.into_parts();
+    let (schema, columns, row_count) = (batch.schema().clone(), batch.columns().to_vec(), batch.num_rows());
 
     let new_fields = schema.fields().iter().map(|field| {
         if let Some(val) = field.metadata().get("rerun:component")

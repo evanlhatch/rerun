@@ -467,7 +467,7 @@ impl Chunk {
                         // component.
                         // This will allow further operations on this densified chunk to take some
                         // very optimized paths.
-                        let (field, offsets, values, _nulls) = filtered.into_parts();
+                        let (field, offsets, values, _nulls) = (filtered.field().clone(), filtered.offsets().clone(), filtered.values().clone(), filtered.nulls().cloned());
                         ArrowListArray::new(field, offsets, values, None)
                     } else {
                         filtered
@@ -934,16 +934,17 @@ impl TimeColumn {
         // The original chunk is unsorted, but the new filtered one actually ends up being sorted.
         let is_sorted_opt = is_sorted.then_some(is_sorted);
 
+        let filtered = re_arrow_util::filter_array(
+            &arrow::array::Int64Array::new(times.clone(), None),
+            filter,
+        );
+        let new_times = filtered.as_any().downcast_ref::<arrow::array::Int64Array>()
+            .map(|a| a.values().clone())
+            .unwrap_or_else(|| times.clone());
         Self::new(
             is_sorted_opt,
             *timeline,
-            re_arrow_util::filter_array(
-                &arrow::array::Int64Array::new(times.clone(), None),
-                filter,
-            )
-            .into_parts()
-            .1,
-        )
+            new_times,
     }
 
     /// Runs a [take] compute kernel on the time data with the specified `indices`.
@@ -958,12 +959,13 @@ impl TimeColumn {
             time_range: _,
         } = self;
 
-        let new_times = re_arrow_util::take_array(
+        let taken = re_arrow_util::take_array(
             &arrow::array::Int64Array::new(times.clone(), None),
             &arrow::array::Int32Array::from(indices.clone()),
-        )
-        .into_parts()
-        .1;
+        );
+        let new_times = taken.as_any().downcast_ref::<arrow::array::Int64Array>()
+            .map(|a| a.values().clone())
+            .unwrap_or_else(|| times.clone());
 
         Self::new(Some(*is_sorted), *timeline, new_times)
     }

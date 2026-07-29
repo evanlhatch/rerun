@@ -1736,7 +1736,7 @@ impl RawRrdManifest {
 fn strip_null_mask_on_default_columns(data: RecordBatch) -> CodecResult<RecordBatch> {
     use re_arrow_util::ArrowArrayDowncastRef as _;
 
-    let (schema, mut columns, num_rows) = data.into_parts();
+    let (schema, mut columns, num_rows) = (data.schema().clone(), data.columns().to_vec(), data.num_rows());
     let mut new_fields = schema.fields.to_vec();
 
     for (field, column) in itertools::izip!(&mut new_fields, &mut columns) {
@@ -1754,7 +1754,7 @@ fn strip_null_mask_on_default_columns(data: RecordBatch) -> CodecResult<RecordBa
                     ),
                 )));
             };
-            let (bools, _nulls) = c.clone().into_parts();
+            let (bools, _nulls) = (c.values().clone(), c.nulls().cloned());
             *column = std::sync::Arc::new(BooleanArray::new(bools, None));
             *field = std::sync::Arc::new((**field).clone().with_nullable(false));
         } else if name.ends_with(":num_rows") {
@@ -1766,7 +1766,7 @@ fn strip_null_mask_on_default_columns(data: RecordBatch) -> CodecResult<RecordBa
                     ),
                 )));
             };
-            let (_dt, ints, _nulls) = c.clone().into_parts();
+            let (_dt, ints, _nulls) = (c.data_type().clone(), c.values().clone(), c.nulls().cloned());
             *column = std::sync::Arc::new(UInt64Array::new(ints, None));
             *field = std::sync::Arc::new((**field).clone().with_nullable(false));
         }
