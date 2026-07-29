@@ -6,9 +6,8 @@ use itertools::Itertools as _;
 use re_byte_size::SizeBytes;
 use re_string_interner::InternedString;
 
-use crate::hash::Hash64;
 use crate::EntityPathPart;
-use crate::PathParseError;
+use crate::hash::Hash64;
 
 // ----------------------------------------------------------------------------
 
@@ -102,12 +101,7 @@ pub struct EntityPath {
     parts: Arc<Vec<EntityPathPart>>,
 }
 
-
 impl EntityPath {
-    pub fn parse_rel(input: &str) -> Result<Self, crate::PathParseError> {
-        Ok(Self::root())
-    }
-
     #[inline]
     pub fn root() -> Self {
         Self::from(vec![])
@@ -349,8 +343,6 @@ impl EntityPath {
             num_part: usize,
         }
 
-}
-
         impl ShortenedEntity {
             fn ui_string(&self) -> String {
                 if self.entity.parts.is_empty() {
@@ -412,7 +404,7 @@ impl EntityPath {
             .map(|(str, entity)| (entity.entity, str))
             .collect()
     }
-
+}
 
 impl FromIterator<EntityPathPart> for EntityPath {
     fn from_iter<T: IntoIterator<Item = EntityPathPart>>(parts: T) -> Self {
@@ -462,11 +454,17 @@ impl From<EntityPath> for String {
 // Reading parses with `parse_forgiving` (via `From<String>`).
 quiver::newtype_datatype!(EntityPath, quiver::Utf8);
 
-impl<'a> From<&'a EntityPath> for re_types_core::datatypes::EntityPath {
+impl From<re_types_core::datatypes::EntityPath> for EntityPath {
     #[inline]
-    fn from(path: &'a EntityPath) -> Self {
-        let s: String = path.to_string();
-        Self(re_types_core::ArrowString::from(s))
+    fn from(value: re_types_core::datatypes::EntityPath) -> Self {
+        Self::parse_forgiving(&value.0)
+    }
+}
+
+impl From<&EntityPath> for re_types_core::datatypes::EntityPath {
+    #[inline]
+    fn from(value: &EntityPath) -> Self {
+        Self(value.to_string().into())
     }
 }
 
@@ -547,12 +545,12 @@ use re_types_core::Loggable;
 
 use super::entity_path_part::RESERVED_NAMESPACE_PREFIX;
 
-re_types_core::impl_into_cow!(EntityPath);
+re_types_core::macros::impl_into_cow!(EntityPath);
 
 impl Loggable for EntityPath {
     #[inline]
     fn arrow_datatype() -> arrow::datatypes::DataType {
-        arrow::datatypes::DataType::Utf8
+        re_types_core::datatypes::Utf8::arrow_datatype()
     }
 
     fn to_arrow_opt<'a>(
@@ -574,29 +572,19 @@ impl Loggable for EntityPath {
     where
         Self: 'a,
     {
-        let strings: Vec<String> = data
-            .into_iter()
-            .map(|ep| ep.into().to_string())
-            .collect();
-        let array = arrow::array::StringArray::from(strings);
-        Ok(std::sync::Arc::new(array))
+        re_types_core::datatypes::Utf8::to_arrow(
+            data.into_iter()
+                .map(Into::into)
+                .map(|ent_path| re_types_core::datatypes::Utf8(ent_path.to_string().into())),
+        )
     }
 
     fn from_arrow(
         array: &dyn ::arrow::array::Array,
     ) -> re_types_core::DeserializationResult<Vec<Self>> {
-        use re_types_core::DeserializationError;
-        let string_array = array
-            .as_any()
-            .downcast_ref::<arrow::array::StringArray>()
-            .ok_or_else(|| DeserializationError::datatype_mismatch(
-                arrow::datatypes::DataType::Utf8,
-                array.data_type().clone(),
-            ))?;
-        Ok(string_array
-            .iter()
-            .map(|s| s.unwrap_or_default())
-            .map(Self::parse_forgiving)
+        Ok(re_types_core::datatypes::Utf8::from_arrow(array)?
+            .into_iter()
+            .map(|utf8| Self::from(utf8.to_string()))
             .collect())
     }
 }
