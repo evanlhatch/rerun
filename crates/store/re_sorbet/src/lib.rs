@@ -10,48 +10,6 @@ pub struct IndexColumnError;
 #[error("Mismatched chunk schema: {0}")]
 pub struct MismatchedChunkSchemaError(pub String);
 
-/// Minimal ChunkSchema stub — wraps a SorbetSchema + EntityPath.
-#[derive(Debug, Clone)]
-pub struct ChunkSchema {
-    _private: (),
-}
-
-impl ChunkSchema {
-    pub fn new(sorbet_schema: crate::SorbetSchema, entity_path: &re_log_types::EntityPath) -> Result<Self, crate::SorbetError> {
-        let _ = (sorbet_schema, entity_path);
-        Ok(Self { _private: () })
-    }
-
-    pub fn sorbet_schema(&self) -> &crate::SorbetSchema {
-        unimplemented!("ChunkSchema stub")
-    }
-
-    pub fn entity_path(&self) -> &re_log_types::EntityPath {
-        unimplemented!("ChunkSchema stub")
-    }
-}
-
-/// Minimal ChunkBatch stub — wraps a SorbetBatch + EntityPath.
-#[derive(Debug, Clone)]
-pub struct ChunkBatch {
-    _private: (),
-}
-
-impl ChunkBatch {
-    pub fn try_new(batch: crate::SorbetBatch, entity_path: &re_log_types::EntityPath) -> Result<Self, crate::SorbetError> {
-        let _ = (batch, entity_path);
-        Ok(Self { _private: () })
-    }
-}
-
-impl TryFrom<&re_chunk::Chunk> for ChunkBatch {
-    type Error = crate::SorbetError;
-    fn try_from(_chunk: &re_chunk::Chunk) -> Result<Self, Self::Error> {
-        Ok(Self { _private: () })
-    }
-}
-
-
 #[derive(Clone, Debug, Error)]
 #[error("Sorbet schema error: {0}")]
 pub struct SorbetError(pub String);
@@ -60,6 +18,23 @@ pub struct SorbetError(pub String);
 #[derive(Clone, Debug, Error)]
 #[error("Dataframe to chunks error")]
 pub struct DataframeToChunksError;
+
+/// Index for dataframe record batch conversion (stub).
+#[derive(Clone, Debug)]
+pub enum DataframeIndex {
+    Auto,
+    Columns(Vec<re_log_types::TimelineName>),
+}
+
+// ── Module declarations ──────────────────────────────────────────────────
+
+pub mod chunk_schema;
+pub mod chunk_batch;
+
+pub use self::chunk_schema::ChunkSchema;
+pub use self::chunk_batch::ChunkBatch;
+
+// ── Descriptor types ─────────────────────────────────────────────────────
 
 /// Describes a component column selection.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -115,7 +90,6 @@ pub struct IndexColumnDescriptor;
 #[derive(Clone, Debug)]
 pub struct RowIdColumnDescriptor;
 
-
 /// The kind of a column.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ColumnKind {
@@ -139,7 +113,6 @@ pub struct TimeColumnSelector {
     pub timeline: re_log_types::TimelineName,
 }
 
-
 /// Batch type for columnar data.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum BatchType {
@@ -151,15 +124,18 @@ pub enum BatchType {
     RowId,
 }
 
-
 // ── Flatland-vendor additions ──
 
 /// Create a Schema from IPC bytes (stub — returns empty schema).
-pub fn migrated_schema_from_ipc(_data: &[u8]) -> Result<std::sync::Arc<arrow::datatypes::Schema>, arrow::error::ArrowError> {
+pub fn migrated_schema_from_ipc(
+    _data: &[u8],
+) -> Result<std::sync::Arc<arrow::datatypes::Schema>, arrow::error::ArrowError> {
     Ok(std::sync::Arc::new(arrow::datatypes::Schema::empty()))
 }
 
 /// Serialize a Schema to IPC bytes (stub — returns empty vec).
-pub fn ipc_from_schema(_schema: &arrow::datatypes::Schema) -> Result<Vec<u8>, arrow::error::ArrowError> {
+pub fn ipc_from_schema(
+    _schema: &arrow::datatypes::Schema,
+) -> Result<Vec<u8>, arrow::error::ArrowError> {
     Ok(Vec::new())
 }
