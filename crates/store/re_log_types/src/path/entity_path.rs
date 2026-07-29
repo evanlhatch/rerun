@@ -102,10 +102,8 @@ pub struct EntityPath {
     parts: Arc<Vec<EntityPathPart>>,
 }
 
-impl EntityPath {
-        Self::parse_rel(input)
-    }
 
+impl EntityPath {
     pub fn parse_rel(input: &str) -> Result<Self, crate::PathParseError> {
         Ok(Self::root())
     }
@@ -350,6 +348,8 @@ impl EntityPath {
             /// How many parts (from the end) to use for the short name
             num_part: usize,
         }
+
+}
 
         impl ShortenedEntity {
             fn ui_string(&self) -> String {
