@@ -1,5 +1,5 @@
 use arrow::array::{ListArray as ArrowListArray, ListArray};
-use arrow::buffer::OffsetBuffer;
+use arrow::buffer::{NullBuffer, OffsetBuffer};
 
 // used in docstrings:
 #[allow(clippy::allow_attributes, unused_imports, clippy::unused_trait_names)]
@@ -250,12 +250,14 @@ pub fn repartition_list_array(
     list_array: ListArray,
     lengths: impl IntoIterator<Item = usize>,
 ) -> arrow::error::Result<ListArray> {
-    let (field, _offsets, values, _nulls) = (list_array.field().clone(), list_array.offsets().clone(), list_array.values().clone(), list_array.nulls().cloned());
+    use arrow::datatypes::DataType;
+    let DataType::List(field) = list_array.data_type() else { unreachable!() };
+    let field = field.clone();
+    let values = list_array.values().clone();
 
     let offsets = OffsetBuffer::from_lengths(lengths);
-    let nulls = None;
 
-    ListArray::try_new(field, offsets, values, nulls)
+    ListArray::try_new(field, offsets, values, NullBuffer::new_valid(offsets.len().saturating_sub(1)))
 }
 
 impl SerializedComponentBatch {
