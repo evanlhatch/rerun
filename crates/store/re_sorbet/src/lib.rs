@@ -8,6 +8,8 @@ pub struct IndexColumnError;
 
 #[derive(Clone, Debug, Error)]
 #[error("Mismatched chunk schema: {0}")]
+pub mod chunk_schema;
+pub mod chunk_batch;
 pub use self::chunk_schema::ChunkSchema;
 pub use self::chunk_batch::ChunkBatch;
 pub struct MismatchedChunkSchemaError(pub String);
