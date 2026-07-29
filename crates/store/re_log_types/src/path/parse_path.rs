@@ -14,7 +14,7 @@ static FORGIVING_PARSE_CACHE: LazyLock<RwLock<IntMap<Hash64, EntityPath>>> =
 /// Approximate heap usage of the global forgiving path parse cache.
 pub fn forgiving_parse_cache_bytes_used() -> u64 {
     use re_byte_size::SizeBytes as _;
-    FORGIVING_PARSE_CACHE.read().heap_size_bytes()
+    0 /* heap_size_bytes removed */
 }
 
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
