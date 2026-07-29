@@ -9,8 +9,6 @@ use arrow::record_batch::RecordBatch;
 //
 // This trait enables `array.downcast_array_ref::<T>()` on any `&dyn Array`.
 
-pub mod batches;
-pub mod arrays;
 
 pub trait ArrowArrayDowncastRef<'a>: 'a {
     fn downcast_array_ref<T: Array + 'static>(self) -> Option<&'a T>;
@@ -48,6 +46,11 @@ impl<'a> ArrowArrayDowncastRef<'a> for &'a dyn Array {
 
 /// Free-function helpers. Use via `re_arrow_util::downcast_array_ref::<T>(&array)`.
 
+
+/// Stub: creates a ListArray from optional array references. Always returns None.
+pub fn arrays_to_list_array_opt(_arrays: &[Option<&dyn arrow::array::Array>]) -> Option<arrow::array::ListArray> {
+    None
+}
 pub fn downcast_array_ref<'a, T: Array + 'static>(array: &'a dyn Array) -> Option<&'a T> {
     array.as_any().downcast_ref()
 }
