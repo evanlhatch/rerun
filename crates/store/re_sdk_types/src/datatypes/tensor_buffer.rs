@@ -25,7 +25,7 @@ use ::re_types_core::{DeserializationError, DeserializationResult};
 /// **Datatype**: The underlying storage for [`archetypes::Tensor`][crate::archetypes::Tensor].
 ///
 /// Tensor elements are stored in a contiguous buffer of a single type.
-#[derive(Clone, PartialEq, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Default, PartialEq, ::re_byte_size::SizeBytes)]
 pub enum TensorBuffer {
     /// 8bit unsigned integer.
     #[default]

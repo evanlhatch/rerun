@@ -945,6 +945,7 @@ impl TimeColumn {
             is_sorted_opt,
             *timeline,
             new_times,
+        )
     }
 
     /// Runs a [take] compute kernel on the time data with the specified `indices`.
