@@ -9,6 +9,9 @@ use arrow::record_batch::RecordBatch;
 //
 // This trait enables `array.downcast_array_ref::<T>()` on any `&dyn Array`.
 
+pub mod batches;
+pub mod arrays;
+
 pub trait ArrowArrayDowncastRef<'a>: 'a {
     fn downcast_array_ref<T: Array + 'static>(self) -> Option<&'a T>;
     fn try_downcast_array_ref<T: Array + 'static>(self) -> Result<&'a T, ArrowError>;
