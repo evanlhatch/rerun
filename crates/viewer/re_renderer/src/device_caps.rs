@@ -1,4 +1,3 @@
-use re_web::browser;
 
 /// Device tiers `re_renderer` distinguishes.
 ///
