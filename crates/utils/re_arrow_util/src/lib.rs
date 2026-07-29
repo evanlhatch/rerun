@@ -51,6 +51,25 @@ impl<'a> ArrowArrayDowncastRef<'a> for &'a dyn Array {
 pub fn arrays_to_list_array_opt(_arrays: &[Option<&dyn arrow::array::Array>]) -> Option<arrow::array::ListArray> {
     None
 }
+
+/// Create a ListArray from an array of optional references (stub).
+pub fn arrays_to_list_array(arrays: &[Option<&dyn arrow::array::Array>]) -> arrow::error::Result<arrow::array::ListArray> {
+    arrays_to_list_array_opt(arrays)
+        .ok_or_else(|| arrow::error::ArrowError::ExternalError(Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "arrays_to_list_array stub",
+        ))))
+}
+
+/// Pad the back of a list array with empty lists (stub).
+pub fn pad_list_array_back(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::ArrayRef {
+    arrow::array::make_array(list_array.to_data())
+}
+
+/// Pad the front of a list array with empty lists (stub).
+pub fn pad_list_array_front(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::ArrayRef {
+    arrow::array::make_array(list_array.to_data())
+}
 pub fn downcast_array_ref<'a, T: Array + 'static>(array: &'a dyn Array) -> Option<&'a T> {
     array.as_any().downcast_ref()
 }
