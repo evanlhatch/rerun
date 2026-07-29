@@ -412,7 +412,7 @@ impl EntityPath {
             .map(|(str, entity)| (entity.entity, str))
             .collect()
     }
-}
+
 
 impl FromIterator<EntityPathPart> for EntityPath {
     fn from_iter<T: IntoIterator<Item = EntityPathPart>>(parts: T) -> Self {
