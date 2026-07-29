@@ -37,7 +37,7 @@ pub mod renderer;
 pub mod resource_managers;
 pub mod texture_info;
 pub mod texture_readback;
-pub // mod video; -- removed (no re_video dep)
+// mod video -- removed (no re_video dep)
 pub mod view_builder;
 pub mod wgpu_buffer_types;
 
