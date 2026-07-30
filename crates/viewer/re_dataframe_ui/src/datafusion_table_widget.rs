@@ -1,3 +1,5 @@
+#![cfg(feature = "remote")]
+#![cfg(feature = "remote")]
 use std::str::FromStr as _;
 use std::sync::Arc;
 

@@ -1,3 +1,4 @@
+#![cfg(feature = "redap")]
 use std::error::Error;
 use std::str::FromStr as _;
 

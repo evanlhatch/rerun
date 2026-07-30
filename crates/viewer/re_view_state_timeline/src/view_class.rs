@@ -1,3 +1,4 @@
+#![cfg(feature = "test")]
 use re_log_types::{
     AbsoluteTimeRange, ComponentPath, EntityPath, TimeCell, TimeInt, TimeReal, TimeType,
     TimelineName, TimestampFormat,

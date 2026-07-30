@@ -1,19 +1,33 @@
 //! Rich table widget over `datafusion`.
 
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod datafusion_adapter;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod datafusion_table_widget;
 mod display_record_batch;
 mod filters;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod grid_view;
 mod header_tooltip;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod preview_renderer;
 mod re_table;
 pub mod re_table_utils;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod requested_object;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 mod streaming_cache;
 mod table_blueprint;
 mod table_selection;
 
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 pub use self::datafusion_table_widget::{DataFusionTableWidget, TableStatus};
 pub use self::display_record_batch::{DisplayRecordBatch, DisplayRecordBatchError};
 // for testing purposes
@@ -22,7 +36,11 @@ pub use self::filters::{
     Nullability, NullableBooleanFilter, StringFilter, StringOperator, TimestampFilter, TypedFilter,
 };
 pub use self::header_tooltip::column_header_tooltip_ui;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 pub use self::requested_object::RequestedObject;
+#[cfg(feature = "remote")]
+#[cfg(feature = "remote")]
 pub use self::streaming_cache::{CacheState, StreamingCacheTableProvider};
 pub use self::table_blueprint::{
     ColumnBlueprint, SortBy, SortDirection, TableBlueprint, default_display_name_for_column,

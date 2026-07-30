@@ -12,7 +12,7 @@ use arrow::datatypes::DataType as ArrowDataType;
 use itertools::Itertools as _;
 use re_arrow_util::ArrowArrayDowncastRef as _;
 use re_component_ui::REDAP_THUMBNAIL_VARIANT;
-use re_dataframe::external::re_chunk::{TimeColumn, TimeColumnError};
+use re_chunk::{TimeColumn, TimeColumnError};
 use re_log_types::hash::Hash64;
 use re_log_types::{EntityPath, TimeInt, Timeline};
 use re_sdk_types::ComponentDescriptor;

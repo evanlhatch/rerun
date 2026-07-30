@@ -1,3 +1,4 @@
+#![cfg(feature = "redap")]
 use std::error::Error;
 
 use re_protos::cloud::v1alpha1::EntryKind;

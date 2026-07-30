@@ -58,10 +58,13 @@ const DEFAULT_NUMBER_WIDTH: f32 = 52.0;
 
 // ---
 
+#[cfg(feature = "redap")]
 pub const REDAP_URI_BUTTON_VARIANT: &str = "redap_uri";
 
+#[cfg(feature = "redap")]
 pub const REDAP_ENTRY_KIND_VARIANT: &str = "redap_entry_kind";
 
+#[cfg(feature = "redap")]
 pub const REDAP_THUMBNAIL_VARIANT: &str = "redap_thumbnail";
 
 // ----
@@ -247,8 +250,11 @@ pub fn create_component_ui_registry() -> re_viewer_context::ComponentUiRegistry 
     // All variant UIs:
     // --------------------------------------------------------------------------------
 
+    #[cfg(feature = "redap")]
     registry.add_variant_ui(REDAP_URI_BUTTON_VARIANT, variant_uis::redap_uri_button);
+    #[cfg(feature = "redap")]
     registry.add_variant_ui(REDAP_ENTRY_KIND_VARIANT, variant_uis::redap_entry_kind);
+    #[cfg(feature = "redap")]
     registry.add_variant_ui(REDAP_THUMBNAIL_VARIANT, variant_uis::redap_thumbnail);
 
     registry

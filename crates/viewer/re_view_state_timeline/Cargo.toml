@@ -1,22 +1,25 @@
 [package]
-authors.workspace = true
+authors = ["Flatland"]
 description = "A view that shows state transitions as horizontal lanes over time."
-edition.workspace = true
-homepage.workspace = true
-license.workspace = true
+edition = "2024"
+homepage = "https://github.com/evanlhatch/sheath"
+license = "Apache-2.0"
 name = "re_view_state_timeline"
-publish = true
+publish = false
 readme = "README.md"
-repository.workspace = true
-rust-version.workspace = true
-version.workspace = true
-include.workspace = true
+repository = "https://github.com/evanlhatch/sheath"
+rust-version = "0.36.0"
+version = "0.36.0"
+include = []
 
 [lints]
-workspace = true
+rust.unsafe_code = "deny"
 
 [package.metadata.docs.rs]
 all-features = true
+
+[features]
+test = ["dep:re_test_context", "dep:re_test_viewport"]
 
 [dependencies]
 re_byte_size.workspace = true

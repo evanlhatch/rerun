@@ -1,3 +1,5 @@
+#![cfg(feature = "remote")]
+#![cfg(feature = "remote")]
 //! Standalone view renderer for embedding views in table rows.
 //!
 //! Renders a view defined by a blueprint independently of the main viewport,

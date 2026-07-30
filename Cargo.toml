@@ -20,7 +20,7 @@ exclude = [
   # Store crates not in flatland dep chain
   "crates/store/re_datafusion",
   "crates/store/re_dataframe",
-  "crates/store/re_dataframe_ui",
+  "crates/viewer/re_dataframe_ui",
   "crates/store/re_grpc_server",
   "crates/store/re_hdf5",
   "crates/store/re_redap_tests",
@@ -29,7 +29,6 @@ exclude = [
   "crates/viewer/re_viewer_mcp",
   "crates/viewer/re_chunk_store_ui",
   "crates/viewer/re_component_fallbacks",
-  "crates/viewer/re_dataframe_ui",
   "crates/viewer/re_dev_tools",
   "crates/viewer/re_memory_view",
   "crates/viewer/re_perf_telemetry",

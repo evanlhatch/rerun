@@ -1,3 +1,5 @@
+#![cfg(feature = "remote")]
+#![cfg(feature = "remote")]
 use crossbeam::channel::Receiver;
 use re_async::{AsyncRuntimeHandle, WasmNotSend};
 

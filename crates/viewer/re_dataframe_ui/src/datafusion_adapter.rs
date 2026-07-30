@@ -1,3 +1,5 @@
+#![cfg(feature = "remote")]
+#![cfg(feature = "remote")]
 use std::mem;
 use std::sync::Arc;
 

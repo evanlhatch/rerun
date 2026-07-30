@@ -1,3 +1,5 @@
+#![cfg(feature = "remote")]
+#![cfg(feature = "remote")]
 use std::fmt;
 use std::pin::Pin;
 use std::sync::Arc;

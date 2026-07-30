@@ -28,7 +28,7 @@ egui.workspace = true
 
 [dev-dependencies]
 re_sdk_types.workspace = true
-re_ui = { workspace = true, features = ["testing"] }
+re_ui = { path = "../re_ui", default-features = false }
 
 egui_kittest.workspace = true
 insta.workspace = true

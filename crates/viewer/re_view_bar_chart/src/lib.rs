@@ -6,3 +6,4 @@ mod view_class;
 mod visualizer_system;
 
 pub use view_class::BarChartView;
+pub use visualizer_system::{BarChartData, BarChartVisualizerSystem};
