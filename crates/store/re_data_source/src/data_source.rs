@@ -405,7 +405,7 @@ impl LogDataSource {
                 Ok(rx)
             }
 
-            Self::RedapProxy(_uri) => Err(re_log_types::DataSourceError::UnsupportedSource("RedapProxy not available".into())),
+            Self::RedapProxy(uri) => Ok(re_grpc_client::stream(async_runtime, uri)),
         }
     }
 
