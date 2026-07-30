@@ -452,7 +452,7 @@ pub fn merge_ranges(ranges: impl Iterator<Item = TimeRange>) -> Vec<TimeRange> {
         new: Vec::new(),
         incoming: ranges.map(IncomingRange).collect(),
     };
-    re_tracing::profile_scope!(format!("{} ranges", ranges.incoming.len()));
+    re_tracing::profile_scope!("range_merger");
 
     while let Some(r) = ranges.incoming.pop() {
         ranges.push(r.0);
