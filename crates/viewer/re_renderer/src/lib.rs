@@ -50,6 +50,7 @@ mod error_handling;
 mod file_resolver;
 mod file_server;
 mod file_system;
+#[cfg(feature = "gaussian-splat")]
 mod gaussian_splat_builder;
 mod global_bindings;
 mod label;
