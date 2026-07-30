@@ -17,6 +17,9 @@ workspace = true
 
 [features]
 default = []
+
+## Enable Gaussian Splatting support.
+gaussian-splat = ["re_renderer/gaussian-splat"]
 testing = []
 
 [dependencies]

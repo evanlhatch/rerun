@@ -112,6 +112,7 @@ impl From<re_renderer::renderer::PointCloudDrawDataError> for ViewSystemExecutio
     }
 }
 
+#[cfg(feature = "gaussian-splat")]
 impl From<re_renderer::renderer::GaussianSplatDrawDataError> for ViewSystemExecutionError {
     fn from(val: re_renderer::renderer::GaussianSplatDrawDataError) -> Self {
         Self::DrawDataCreationError(Arc::new(val))
