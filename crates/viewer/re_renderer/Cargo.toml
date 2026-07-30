@@ -48,9 +48,6 @@ import-obj = ["dep:tobj"]
 ## Support importing binary & ascii .stl files
 import-stl = ["dep:stl_io"]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-re_web.workspace = true
-
 [dependencies]
 re_byte_size = { workspace = true, features = ["macaw"] }
 re_error.workspace = true
@@ -100,6 +97,7 @@ notify.workspace = true
 
 # web
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+re_web.workspace = true
 getrandom = { workspace = true, features = [
   "wasm_js",
 ] } # getrandom needs the `js` feature to be enabled. It is dragged in indirectly.
