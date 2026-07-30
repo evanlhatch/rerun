@@ -100,6 +100,7 @@ pub use texture_readback::{TextureReadback, poll_read_texture, schedule_read_tex
 pub use transparent_sort::SortOrderCache;
 // Re-export used color types directly.
 pub use ecolor::{Color32, Hsva, Rgba};
+#[cfg(feature = "gaussian-splat")]
 pub use gaussian_splat_builder::{GaussianSplatBatchBuilder, GaussianSplatBuilder};
 pub use global_bindings::GlobalBindings;
 pub use importer::{CpuModel, CpuModelMeshKey};
