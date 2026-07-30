@@ -3,11 +3,12 @@ use re_types_core::ComponentDescriptor;
 use re_ui::{UiLayout, list_item};
 use re_viewer_context::{AppContext, StoreViewContext};
 
-use crate::{
-    blob_ui::BlobUi, image_ui::ImageUi, transform_frames_ui::TransformFramesUi, video_ui::VideoUi,
-};
+use crate::{blob_ui::BlobUi, image_ui::ImageUi, transform_frames_ui::TransformFramesUi};
+#[cfg(feature = "video")]
+use crate::video_ui::VideoUi;
 
 pub enum ExtraDataUi {
+    #[cfg(feature = "video")]
     Video(VideoUi),
     Image(ImageUi),
     Blob(BlobUi),
@@ -23,7 +24,8 @@ impl ExtraDataUi {
         entity_components: &[(ComponentDescriptor, UnitChunkShared)],
     ) -> Option<Self> {
         // Try video UI first.
-        VideoUi::from_components(ctx, entity_path, descr)
+        #[cfg(feature = "video")]
+        let result = VideoUi::from_components(ctx, entity_path, descr)
             .map(Self::Video)
             .or_else(|| {
                 BlobUi::from_components(ctx, entity_path, descr, chunk, entity_components)
@@ -35,7 +37,18 @@ impl ExtraDataUi {
             .or_else(|| {
                 TransformFramesUi::from_components(ctx, descr, chunk, entity_components)
                     .map(Self::TransformHierarchy)
+            });
+        #[cfg(not(feature = "video"))]
+        let result = BlobUi::from_components(ctx, entity_path, descr, chunk, entity_components)
+            .map(Self::Blob)
+            .or_else(|| {
+                ImageUi::from_components(ctx, descr, chunk, entity_components).map(Self::Image)
             })
+            .or_else(|| {
+                TransformFramesUi::from_components(ctx, descr, chunk, entity_components)
+                    .map(Self::TransformHierarchy)
+            });
+        result
     }
 
     pub fn add_inline_buttons<'a>(
@@ -46,6 +59,7 @@ impl ExtraDataUi {
         mut property_content: list_item::PropertyContent<'a>,
     ) -> list_item::PropertyContent<'a> {
         match self {
+            #[cfg(feature = "video")]
             Self::Video(_) => {
                 // Video streams are not copyable or downloadable
                 property_content
@@ -70,6 +84,7 @@ impl ExtraDataUi {
         entity_path: &re_log_types::EntityPath,
     ) {
         match self {
+            #[cfg(feature = "video")]
             Self::Video(video) => {
                 video.data_ui(ctx, ui, layout);
             }

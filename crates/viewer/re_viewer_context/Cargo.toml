@@ -21,6 +21,9 @@ default = []
 ## Enable Gaussian Splatting support.
 gaussian-splat = ["re_renderer/gaussian-splat"]
 
+## Enable video support.
+video = ["dep:re_video", "re_sdk_types/video"]
+
 ## Enable DataFrame query support (pulls in datafusion).
 dataframe = ["dep:datafusion"]
 testing = []
@@ -37,8 +40,8 @@ re_entity_db.workspace = true
 re_error.workspace = true
 re_format.workspace = true
 re_log_channel.workspace = true
-re_log_encoding = { workspace = true, features = ["decoder", "encoder", "stream_from_http"] }
-re_video.workspace = true
+re_log_encoding = { workspace = true, features = ["decoder", "encoder"] }
+re_video = { workspace = true, optional = true }
 re_redap_client.workspace = true
 re_memory.workspace = true
 re_data_source.workspace = true

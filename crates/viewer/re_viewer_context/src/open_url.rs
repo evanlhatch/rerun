@@ -190,7 +190,7 @@ impl ViewerOpenUrl {
         } else if url.starts_with(WEB_EVENT_LISTENER_SCHEME) {
             // Web event listener (legacy notebooks).
             Ok(Self::WebEventListener)
-        } else if let Some(data_source) =
+        } else if let Ok(data_source) =
             LogDataSource::from_uri(re_log_types::FileSource::Uri, url, from_uri_options)
         {
             match data_source {
@@ -199,12 +199,10 @@ impl ViewerOpenUrl {
                 #[cfg(not(target_arch = "wasm32"))]
                 LogDataSource::FilePath { path, .. } => Ok(Self::FilePath(path)),
 
-                #[cfg(target_arch = "wasm32")]
-                LogDataSource::FileContents(..) => {
+                LogDataSource::FileContents { .. } => {
                     unreachable!("FileContents can not be shared as a URL");
                 }
 
-                #[cfg(target_arch = "wasm32")]
                 LogDataSource::FileHandle { .. } => {
                     unreachable!("FileHandle can not be shared as a URL");
                 }
@@ -597,6 +595,7 @@ impl ViewerOpenUrl {
             Self::HttpUrl(url) => {
                 command_sender.send_system(SystemCommand::LoadDataSource(LogDataSource::HttpUrl {
                     url,
+                    open_behavior: Default::default(),
                 }));
             }
             #[cfg(not(target_arch = "wasm32"))]
@@ -605,6 +604,7 @@ impl ViewerOpenUrl {
                     LogDataSource::FilePath {
                         file_source: re_log_types::FileSource::Uri,
                         path,
+                        open_behavior: Default::default(),
                     },
                 ));
             }
@@ -613,7 +613,7 @@ impl ViewerOpenUrl {
                     LogDataSource::RedapDatasetSegment {
                         uri,
                         // Open behavior is not encoded in the url right now.
-                        open_behavior: options.recording_open_behavior,
+                        open_behavior: Default::default(),
                     },
                 ));
             }

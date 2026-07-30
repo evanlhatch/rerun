@@ -9,6 +9,7 @@ use re_ui::list_item::{self, ListItemContentButtonsExt as _, PropertyContent};
 use re_ui::{UiExt as _, icons};
 use re_viewer_context::{AppContext, StoreViewContext, StoredBlobCacheKey, UiLayout};
 
+#[cfg(feature = "video")]
 use crate::video_ui::VideoUi;
 use crate::{EntityDataUi, find_and_deserialize_archetype_mono_component};
 
@@ -126,6 +127,7 @@ pub struct BlobUi {
     blob: re_sdk_types::datatypes::Blob,
 
     /// Additional video ui if the blob is a video.
+    #[cfg(feature = "video")]
     video: Option<VideoUi>,
 
     /// The row id of the blob.
@@ -195,6 +197,7 @@ impl BlobUi {
         media_type: Option<&MediaType>,
         video_timestamp: Option<VideoTimestamp>,
     ) -> Self {
+        #[cfg(feature = "video")]
         let video = if let Some(blob_row_id) = blob_row_id {
             VideoUi::from_blob(
                 ctx,
@@ -210,6 +213,7 @@ impl BlobUi {
         };
 
         Self {
+            #[cfg(feature = "video")]
             video,
             row_id: blob_row_id,
             component: blob_component_descriptor.component,
@@ -263,6 +267,7 @@ impl BlobUi {
             );
         }
 
+        #[cfg(feature = "video")]
         if let Some(video) = &self.video {
             video.data_ui(ctx, ui, ui_layout);
         }

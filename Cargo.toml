@@ -225,7 +225,7 @@ eframe = { version = "0.35.0", default-features = false, features = [
   "x11",
 ] }
 egui = { version = "0.35.0", features = ["callstack", "color-hex", "rayon"] }
-egui_extras = { version = "0.35.0", features = ["http", "image", "serde", "svg"] }
+egui_extras = { version = "0.35.0", features = ["image", "serde", "svg"] }
 egui_inspection = { version = "0.35.0", default-features = false, features = ["plugin"] }
 egui_kittest = { version = "0.35.0", features = ["wgpu", "snapshot", "eframe"] }
 egui_mcp = { version = "0.1.0" }

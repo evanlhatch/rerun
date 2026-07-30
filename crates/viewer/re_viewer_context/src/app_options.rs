@@ -1,6 +1,7 @@
 use re_entity_db::FetchStage;
 use re_log_types::TimestampFormat;
 use re_memory::MemoryLimit;
+#[cfg(feature = "video")]
 use re_video::{DecodeHardwareAcceleration, DecodeSettings};
 
 const MAPBOX_ACCESS_TOKEN_ENV_VAR: &str = "RERUN_MAPBOX_ACCESS_TOKEN";
@@ -153,6 +154,7 @@ impl AppOptions {
     }
 
     /// Get the video decoder settings.
+    #[cfg(feature = "video")]
     pub fn video_decoder_settings(&self) -> DecodeSettings {
         DecodeSettings {
             hw_acceleration: self.video.hw_acceleration,
@@ -170,6 +172,7 @@ impl AppOptions {
 #[serde(default)]
 pub struct VideoOptions {
     /// Preferred method for video decoding on web.
+    #[cfg(feature = "video")]
     pub hw_acceleration: DecodeHardwareAcceleration,
 
     /// Override the path to the FFmpeg binary.

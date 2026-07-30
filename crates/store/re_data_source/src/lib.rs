@@ -1,59 +1,74 @@
-//! Handles different ways of loading Rerun data, e.g.:
-//!
-//! - Over HTTPS
-//! - Over gRPC
-//! - From disk
-//!
-//! Also handles different file types: rrd, images, text files, 3D models, point clouds…
+//! Stub: re_data_source — flatland vendor does not load from external sources.
+//! Provides LogDataSource with the correct types so re_viewer_context compiles.
 
-mod data_source;
-pub(crate) mod fetch_file_from_http;
-mod stream_rrd_from_http;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-#[cfg(not(target_arch = "wasm32"))]
-mod load_stdin;
+use re_uri::external::url::Url;
+use re_uri::{DatasetSegmentUri, ProxyUri};
 
-pub use re_log_channel::RecordingOpenBehavior;
-
-pub use self::data_source::{
-    AuthErrorHandler, FromUriOptions, LogDataSource, LogDataSourceAnalytics,
-};
-
-// ----------------------------------------------------------------------------
-
-/// The contents of a dropped file.
-//
-// TODO(#4554): drag-n-drop streaming support
-#[cfg(target_arch = "wasm32")]
-#[derive(Clone, PartialEq, Eq)]
-pub struct FileContents {
-    pub path: std::path::PathBuf,
-    pub bytes: std::sync::Arc<[u8]>,
+/// Stub — no external data sources are actually loaded in flatland vendor.
+#[derive(Clone, Debug)]
+pub enum LogDataSource {
+    FilePath {
+        path: PathBuf,
+        file_source: re_log_types::FileSource,
+        open_behavior: OpenBehavior,
+    },
+    FileContents {
+        contents: Arc<[u8]>,
+        file_source: re_log_types::FileSource,
+        open_behavior: OpenBehavior,
+    },
+    FileHandle {
+        path: PathBuf,
+        file_source: re_log_types::FileSource,
+        open_behavior: OpenBehavior,
+    },
+    HttpUrl {
+        url: Url,
+        open_behavior: OpenBehavior,
+    },
+    Stdin,
+    RedapDatasetSegment {
+        uri: DatasetSegmentUri,
+        open_behavior: OpenBehavior,
+    },
+    RedapProxy(ProxyUri),
 }
 
-#[cfg(target_arch = "wasm32")]
-impl FileContents {
-    // TODO(RR-5263): Remove again once we stream to OPFS.
-    pub async fn from_file(file: web_sys::File) -> anyhow::Result<Self> {
-        let path = std::path::PathBuf::from(file.name());
-        let buffer = file
-            .array_buffer()
-            .await
-            .map_err(|err| anyhow::anyhow!("failed to read file: {}", re_web::Error::from(err)))?;
-
-        Ok(Self {
-            path,
-            bytes: js_sys::Uint8Array::new(&buffer).to_vec().into(),
-        })
+impl LogDataSource {
+    pub fn from_uri(
+        _source: re_log_types::FileSource,
+        url: &str,
+        _options: &FromUriOptions,
+    ) -> Result<Self, anyhow::Error> {
+        if url.starts_with("http") {
+            Ok(Self::HttpUrl {
+                url: url.parse()?,
+                open_behavior: OpenBehavior::default(),
+            })
+        } else {
+            Ok(Self::FilePath {
+                path: url.into(),
+                file_source: re_log_types::FileSource::Uri,
+                open_behavior: OpenBehavior::default(),
+            })
+        }
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-impl std::fmt::Debug for FileContents {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("FileContents")
-            .field("path", &self.path)
-            .field("bytes", &format_args!("{} bytes", self.bytes.len()))
-            .finish()
-    }
+/// Stub — controls how a data source opens.
+#[derive(Clone, Debug, Default)]
+pub enum OpenBehavior {
+    #[default]
+    Default,
+    ReplaceCurrent,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FromUriOptions;
+
+impl FromUriOptions {
+    pub fn accept_extensionless_http(self, _accept: bool) -> Self { self }
 }

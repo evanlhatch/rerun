@@ -23,6 +23,7 @@ mod latest_at_instance_ui;
 mod store_id_ui;
 mod tensor_ui;
 mod transform_frames_ui;
+#[cfg(feature = "video")]
 mod video_ui;
 
 mod extra_data_ui;

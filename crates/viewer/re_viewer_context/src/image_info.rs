@@ -44,6 +44,8 @@ pub fn resolution_of_image_at(
     }
 
     // Check for a video stream.
+    #[cfg(feature = "video")]
+    {
     let video_stream_sample_component = archetypes::VideoStream::descriptor_sample().component;
     if let Some(((_time, _), _)) = entity_db
         .latest_at_component::<re_sdk_types::components::VideoSample>(
@@ -61,8 +63,13 @@ pub fn resolution_of_image_at(
                         query,
                         archetypes::EncodedImage::descriptor_media_type().component,
                     )
-                    .map(|(_, c)| re_video::VideoCodec::from(c))
-                    .ok_or(crate::VideoStreamProcessingError::MissingCodec);
+                    .map(|(_, c)| {
+                        #[cfg(feature = "video")]
+                        { re_video::VideoCodec::from(c) }
+                        #[cfg(not(feature = "video"))]
+                        { unreachable!("video feature disabled") }
+                    })
+                    .ok_or_else(|| anyhow::anyhow!("missing codec"))?;
                 let codec = codec?;
 
                 c.entry(
@@ -83,6 +90,7 @@ pub fn resolution_of_image_at(
             ));
         }
     }
+    } // #[cfg(feature = "video")]
 
     // Check for an encoded image & encoded depth image.
     let encoded_image_resolution = |image_blob_component, media_type_component| {
@@ -93,6 +101,7 @@ pub fn resolution_of_image_at(
                 image_blob_component,
             )
         {
+            #[cfg(feature = "video")]
             let video = ctx
                 .store_context
                 .memoizer(|c: &mut crate::VideoStreamCache| {
@@ -110,10 +119,11 @@ pub fn resolution_of_image_at(
                         *ctx.time_ctrl.timeline_name(),
                         ctx.app_options().video_decoder_settings(),
                         image_blob_component,
-                        re_video::VideoCodec::ImageSequence(media_type),
+                        re_video_codec(media_type),
                     )
                 });
 
+            #[cfg(feature = "video")]
             if let Ok(video) = video
                 && let Some(encoding_details) = &video.read_arc().video_descr().encoding_details
             {
@@ -623,4 +633,15 @@ mod tests {
             panic!("Expected ImageLuma8, got {dynamic_image:?}");
         }
     }
+}
+
+
+#[cfg(feature = "video")]
+fn re_video_codec(media_type: String) -> re_video::VideoCodec {
+    re_video::VideoCodec::ImageSequence(media_type)
+}
+
+#[cfg(not(feature = "video"))]
+fn re_video_codec(_media_type: String) -> () {
+    ()
 }

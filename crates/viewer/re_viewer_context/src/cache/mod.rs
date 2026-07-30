@@ -13,7 +13,9 @@ mod memoizers;
 mod store_cache;
 mod tensor_stats_cache;
 mod transform_database_store;
+#[cfg(feature = "video")]
 mod video_asset_cache;
+#[cfg(feature = "video")]
 mod video_stream_cache;
 
 pub use app_caches::AppCaches;
@@ -30,7 +32,9 @@ pub use image_histogram_cache::{ImageHistogramCache, Rgb8Histogram};
 pub use image_stats_cache::ImageStatsCache;
 pub use tensor_stats_cache::{TensorStatsAccessor, TensorStatsCache};
 pub use transform_database_store::TransformDatabaseStoreCache;
+#[cfg(feature = "video")]
 pub use video_asset_cache::VideoAssetCache;
+#[cfg(feature = "video")]
 pub use video_stream_cache::{
     SharablePlayableVideoStream, VideoStoreSource, VideoStreamCache, VideoStreamProcessingError,
 };

@@ -74,9 +74,13 @@ pub use self::blueprint_id::{
 };
 pub use self::cache::{
     AppCaches, Cache, CacheEntryAccess, EncodedDepthImageStatsCache, ImageDecodeCache,
-    ImageHistogramCache, ImageStatsCache, Memoizers, Rgb8Histogram, SharablePlayableVideoStream,
+    ImageHistogramCache, ImageStatsCache, Memoizers, Rgb8Histogram,
     StoreCache, TensorStatsAccessor, TensorStatsCache, TransformDatabaseStoreCache,
-    VideoAssetCache, VideoStoreSource, VideoStreamCache, VideoStreamProcessingError,
+};
+#[cfg(feature = "video")]
+pub use self::cache::{
+    SharablePlayableVideoStream, VideoAssetCache, VideoStoreSource, VideoStreamCache,
+    VideoStreamProcessingError,
 };
 pub use self::collapsed_id::{CollapseItem, CollapseScope, CollapsedId};
 pub use self::command_sender::{
@@ -136,8 +140,8 @@ pub use self::typed_entity_collections::{
 };
 pub use self::undo::BlueprintUndoState;
 pub use self::utils::{
-    auto_color_egui, auto_color_for_entity_path, level_to_rich_text, video_stream_time_from_query,
-    video_timestamp_component_to_video_time,
+    auto_color_egui, auto_color_for_entity_path, level_to_rich_text,
+    
 };
 pub use self::view::{
     BufferAndFormatConstraint, DataResult, IdentifiedViewSystem, OptionalViewEntityHighlight,
