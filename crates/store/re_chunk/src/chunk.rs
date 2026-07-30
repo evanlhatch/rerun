@@ -65,7 +65,7 @@ pub enum ChunkError {
 }
 
 const _: () = assert!(
-    std::mem::size_of::<ChunkError>() <= 128,
+    std::mem::size_of::<ChunkError>() <= 72,
     "Error type is too large. Try to reduce its size by boxing some of its variants.",
 );
 
@@ -107,7 +107,7 @@ impl ChunkComponents {
 
             let left_array = widen_binary_arrays(&left_column.list_array);
             let right_array = widen_binary_arrays(&right_column.list_array);
-            let _left_data = left_array.to_data(); let _right_data = right_array.to_data(); re_arrow_util::ensure_similar(&_left_data, &_right_data)
+            re_arrow_util::ensure_similar(&left_array.to_data(), &right_array.to_data())
                 .with_context(|| format!("Component {component:?}"))?;
         }
         Ok(())

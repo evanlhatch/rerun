@@ -37,7 +37,7 @@ pub mod renderer;
 pub mod resource_managers;
 pub mod texture_info;
 pub mod texture_readback;
-// mod video -- removed (no re_video dep)
+pub mod video;
 pub mod view_builder;
 pub mod wgpu_buffer_types;
 
@@ -50,6 +50,7 @@ mod error_handling;
 mod file_resolver;
 mod file_server;
 mod file_system;
+mod gaussian_splat_builder;
 mod global_bindings;
 mod label;
 mod line_drawable_builder;
@@ -59,6 +60,7 @@ mod rect;
 mod shape_builder;
 mod size;
 mod transform;
+mod transparent_sort;
 pub mod util;
 mod wgpu_resources;
 
@@ -95,8 +97,10 @@ pub use draw_phases::{
 pub use label::Label;
 pub use resource_managers::AlphaChannelUsage;
 pub use texture_readback::{TextureReadback, poll_read_texture, schedule_read_texture};
+pub use transparent_sort::SortOrderCache;
 // Re-export used color types directly.
 pub use ecolor::{Color32, Hsva, Rgba};
+pub use gaussian_splat_builder::{GaussianSplatBatchBuilder, GaussianSplatBuilder};
 pub use global_bindings::GlobalBindings;
 pub use importer::{CpuModel, CpuModelMeshKey};
 pub use line_drawable_builder::{LineBatchBuilder, LineDrawableBuilder, LineStripBuilder};
@@ -132,7 +136,7 @@ pub use self::file_system::{FileSystem, get_filesystem};
 use self::file_system::OsFileSystem;
 
 pub mod external {
-    pub use {anyhow, bytemuck, smallvec, wgpu};
+    pub use {anyhow, bytemuck, re_video, smallvec, wgpu};
 }
 
 // ---------------------------------------------------------------------------

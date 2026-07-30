@@ -169,7 +169,7 @@ pub(crate) fn import(
                 let tx_feedback = tx_feedback.clone();
 
                 rayon::spawn(move || {
-                    re_tracing::profile_scope!("inner");
+                    re_tracing::profile_scope!("inner", importer.name());
 
                     if let Some(contents) = contents.as_deref() {
                         let contents = Cow::Borrowed(contents.as_ref());

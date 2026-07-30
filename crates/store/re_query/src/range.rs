@@ -298,7 +298,7 @@ impl RangeCache {
         component: ComponentIdentifier,
         tracking_mode: ChunkTrackingMode,
     ) -> (Vec<Chunk>, Vec<ChunkId>) {
-        re_tracing::profile_scope!("range");
+        re_tracing::profile_scope!("range", format!("{query:?}"));
 
         re_log::debug_assert_eq!(
             Some(query.timeline()),

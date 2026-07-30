@@ -1031,7 +1031,10 @@ impl ChunkStore {
             .get(entity_path)
             .is_some_and(|per_component| per_component.get(&component).is_some());
 
-        let is_tombstone = false; // stub - Clear archetype not available
+        use re_types_core::Archetype as _;
+        let is_tombstone = re_types_core::archetypes::Clear::all_components()
+            .iter()
+            .any(|descr| descr.component == component);
 
         Some(ColumnMetadata {
             is_static,

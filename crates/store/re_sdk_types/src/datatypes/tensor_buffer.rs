@@ -1603,9 +1603,3 @@ impl ::re_types_core::Loggable for TensorBuffer {
         })
     }
 }
-
-impl Default for TensorBuffer {
-    fn default() -> Self {
-        Self::U8(::arrow::buffer::ScalarBuffer::default())
-    }
-}

@@ -224,13 +224,17 @@ impl From<TimeInt> for Duration {
 
 impl From<TimeInt> for re_types_core::datatypes::TimeInt {
     #[inline]
-    fn from(value: TimeInt) -> Self {
-        Self(value.as_i64())
+    fn from(time: TimeInt) -> Self {
+        Self(time.as_i64())
     }
 }
 
-// Stripped: re_types_core::datatypes::TimeInt is a bare struct, From impls are dead code
-
+impl From<re_types_core::datatypes::TimeInt> for TimeInt {
+    #[inline]
+    fn from(time: re_types_core::datatypes::TimeInt) -> Self {
+        Self::new_temporal(time.0)
+    }
+}
 
 impl std::ops::Neg for TimeInt {
     type Output = Self;
@@ -289,13 +293,5 @@ mod tests {
             TimeInt::saturated_temporal_i64(i64::MAX - 1),
             TimeInt::new_temporal(i64::MAX - 1)
         );
-    }
-}
-
-impl From<re_types_core::datatypes::TimeInt> for TimeInt {
-    #[inline]
-    fn from(value: re_types_core::datatypes::TimeInt) -> Self {
-        // Convert via i64: re_types_core TimeInt wraps an i64 as public .0
-        Self(NonMinI64::new(value.0))
     }
 }

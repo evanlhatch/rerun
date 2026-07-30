@@ -134,7 +134,7 @@ impl Chunk {
             heap_size_bytes: Default::default(),
             is_sorted,
             row_ids: if deep {
-                { let _d = re_arrow_util::deep_slice_array(row_ids, index, len); _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone() }
+                re_arrow_util::deep_slice_array(row_ids, index, len)
             } else {
                 row_ids.slice(index, len)
             },
@@ -147,10 +147,7 @@ impl Chunk {
                 .map(|column| {
                     SerializedComponentColumn::new(
                         if deep {
-                            {
-            let d = re_arrow_util::deep_slice_array(&column.list_array, index, len);
-            d.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone()
-        }
+                            re_arrow_util::deep_slice_array(&column.list_array, index, len)
                         } else {
                             column.list_array.slice(index, len)
                         },
@@ -455,10 +452,7 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: {
-            let d = re_arrow_util::filter_array(row_ids, &validity_filter);
-            d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
-        },
+            row_ids: re_arrow_util::filter_array(row_ids, &validity_filter),
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.filtered(&validity_filter)))
@@ -473,18 +467,13 @@ impl Chunk {
                         // component.
                         // This will allow further operations on this densified chunk to take some
                         // very optimized paths.
-                        use arrow::datatypes::DataType;
-                        let filtered_list = filtered.as_any().downcast_ref::<ArrowListArray>().unwrap();
-                        let DataType::List(field) = arrow::array::Array::data_type(filtered_list) else { unreachable!() };
-                        let field = field.clone();
-                        let offsets = filtered_list.offsets().clone();
-                        let values = filtered_list.values().clone();
-                        ArrowListArray::try_new(field, offsets, values, None).unwrap()
+                        let (field, offsets, values, _nulls) = filtered.into_parts();
+                        ArrowListArray::new(field, offsets, values, None)
                     } else {
                         filtered
                     };
 
-                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -643,13 +632,10 @@ impl Chunk {
             entity_path: self.entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted: self.is_sorted,
-            row_ids: {
-                let _d = re_arrow_util::take_array(
-                    &self.row_ids,
-                    &arrow::array::Int32Array::from(indices.clone()),
-                );
-                _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
-            },
+            row_ids: re_arrow_util::take_array(
+                &self.row_ids,
+                &arrow::array::Int32Array::from(indices.clone()),
+            ),
             timelines: self
                 .timelines
                 .iter()
@@ -660,7 +646,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let filtered = re_arrow_util::take_array(&column.list_array, &indices);
-                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -723,10 +709,7 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: {
-            let d = re_arrow_util::filter_array(row_ids, filter);
-            d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
-        },
+            row_ids: re_arrow_util::filter_array(row_ids, filter),
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.filtered(filter)))
@@ -735,7 +718,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let filtered = re_arrow_util::filter_array(&column.list_array, filter);
-                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -806,13 +789,10 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: {
-                let _d = re_arrow_util::take_array(
-                    row_ids,
-                    &arrow::array::Int32Array::from(indices.clone()),
-                );
-                _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
-            },
+            row_ids: re_arrow_util::take_array(
+                row_ids,
+                &arrow::array::Int32Array::from(indices.clone()),
+            ),
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.taken(indices)))
@@ -821,7 +801,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let taken = re_arrow_util::take_array(&column.list_array, indices);
-                    SerializedComponentColumn::new(taken.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
+                    SerializedComponentColumn::new(taken, column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -954,17 +934,15 @@ impl TimeColumn {
         // The original chunk is unsorted, but the new filtered one actually ends up being sorted.
         let is_sorted_opt = is_sorted.then_some(is_sorted);
 
-        let filtered = re_arrow_util::filter_array(
-            &arrow::array::Int64Array::new(times.clone(), None),
-            filter,
-        );
-        let new_times = filtered.as_any().downcast_ref::<arrow::array::Int64Array>()
-            .map(|a| a.values().clone())
-            .unwrap_or_else(|| times.clone());
         Self::new(
             is_sorted_opt,
             *timeline,
-            new_times,
+            re_arrow_util::filter_array(
+                &arrow::array::Int64Array::new(times.clone(), None),
+                filter,
+            )
+            .into_parts()
+            .1,
         )
     }
 
@@ -980,13 +958,12 @@ impl TimeColumn {
             time_range: _,
         } = self;
 
-        let taken = re_arrow_util::take_array(
+        let new_times = re_arrow_util::take_array(
             &arrow::array::Int64Array::new(times.clone(), None),
             &arrow::array::Int32Array::from(indices.clone()),
-        );
-        let new_times = taken.as_any().downcast_ref::<arrow::array::Int64Array>()
-            .map(|a| a.values().clone())
-            .unwrap_or_else(|| times.clone());
+        )
+        .into_parts()
+        .1;
 
         Self::new(Some(*is_sorted), *timeline, new_times)
     }

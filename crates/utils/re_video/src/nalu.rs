@@ -82,7 +82,7 @@ pub fn write_length_prefixed_nalus_to_annexb_stream(
         // Note that we don't have to insert "emulation prevention bytes" since mp4 NALU still use them.
         // (unlike the NAL start code, the presentation bytes are part of the NAL spec!)
 
-        re_tracing::profile_scope!("write_bytes");
+        re_tracing::profile_scope!("write_bytes", data.len().to_string());
         nalu_stream.write_all(data)?;
 
         buffer_offset = data_end;

@@ -1,7 +1,6 @@
 mod cpu_worker;
 mod io_loop;
 
-use std::any::Any;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::pin::Pin;
@@ -560,6 +559,7 @@ impl<T: DataframeClientAPI> SegmentStreamExec<T> {
         let pipeline_budget = Arc::new(PipelineBudget::new_with_metrics(
             total_uncompressed,
             num_partitions,
+            crate::pipeline_budget::segment_admission_limit(),
             Arc::clone(pending_analytics.metrics()),
         ));
 
@@ -587,10 +587,6 @@ impl<T: DataframeClientAPI> SegmentStreamExec<T> {
 impl<T: DataframeClientAPI> ExecutionPlan for SegmentStreamExec<T> {
     fn name(&self) -> &'static str {
         "SegmentStreamExec"
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
     }
 
     fn properties(&self) -> &Arc<PlanProperties> {
@@ -636,13 +632,12 @@ impl<T: DataframeClientAPI> ExecutionPlan for SegmentStreamExec<T> {
 
         let (chunk_tx, chunk_rx) = tokio::sync::mpsc::channel(CPU_THREAD_IO_CHANNEL_SIZE);
 
-        let random_state = ahash::RandomState::with_seeds(0, 0, 0, 0);
         let chunk_infos: Vec<_> = {
             re_tracing::profile_scope!("concat_chunk_infos_per_segment");
             self.chunk_info
                 .iter()
                 .filter(|(segment_id, _)| {
-                    let hash_value = segment_partition_hash(segment_id, &random_state) as usize;
+                    let hash_value = segment_partition_hash(segment_id) as usize;
                     hash_value % self.target_partitions == partition
                 })
                 // Drop segments not referenced by `index_values` before
