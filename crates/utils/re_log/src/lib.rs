@@ -1,29 +1,295 @@
-//! Shim: forwards Rerun logging macros to tracing.
+//! Text logging (nothing to do with rerun logging) for use in rerun libraries.
+//!
+//! Provides helpers for adding multiple loggers,
+//! and for setting up logging on native and on web.
+//!
+//! * `trace`: spammy things
+//! * `debug`: things that might be useful when debugging
+//! * `info`: things that we want to show to users
+//! * `warn`: problems that we can recover from
+//! * `error`: problems that lead to loss of functionality or data
+//!
+//! The `warn_once` etc macros are for when you want to suppress repeated
+//! logging of the exact same message.
+//!
+//! In the viewer these logs, if >= info, become notifications. See
+//! `re_ui::notifications` for more information.
 
-pub mod debug_assert;
+#[cfg(feature = "setup")]
+mod channel_logger;
+mod debug_assert;
+#[cfg(feature = "setup")]
+mod event_visitor;
+mod result_extensions;
+#[cfg(feature = "setup")]
+mod setup;
+#[cfg(feature = "setup")]
+pub use channel_logger::{LogMsg, Receiver, Sender, add_log_msg_receiver};
+#[cfg(feature = "setup")]
+pub use event_visitor::FieldValue;
 
-pub use tracing::{debug, error, info, trace, warn, Level};
+pub use tracing::Level;
+#[cfg(feature = "setup")]
+pub use tracing_subscriber::filter::LevelFilter;
+// The `re_log::info_once!(…)` etc are nice helpers, but the `log-once` crate is a bit lacking.
+// In the future we should implement our own macros to de-duplicate based on the callsite,
+// similar to how the log console in a browser will automatically suppress duplicates.
 pub use log_once::{debug_once, error_once, info_once, trace_once, warn_once};
+pub use result_extensions::ResultExt;
+#[cfg(all(feature = "setup", not(target_arch = "wasm32")))]
+pub use setup::PanicOnWarnScope;
+#[cfg(feature = "setup")]
+pub use setup::{setup_logging, setup_logging_with_filter};
+// The tracing macros support more syntax features than the log, that's why we use them:
+pub use tracing::{debug, error, info, trace, warn};
 
-/// Initialize logging.
-/// In flatland, this should be called via flatland_observe::init() instead.
-/// Kept here for API compatibility.
-/// Log a warning once, but only in debug mode.
+/// Log once at the given [`Level`].
 #[macro_export]
-macro_rules! debug_warn_once {
-    ($($arg:tt)+) => {
-        #[cfg(debug_assertions)]
-        $crate::warn_once!($($arg)+);
+macro_rules! log_once {
+    ($level:expr, $($arg:tt)+) => {
+        match $level {
+            $crate::Level::ERROR => $crate::error_once!($($arg)+),
+            $crate::Level::WARN => $crate::warn_once!($($arg)+),
+            $crate::Level::INFO => $crate::info_once!($($arg)+),
+            $crate::Level::DEBUG => $crate::debug_once!($($arg)+),
+            $crate::Level::TRACE => $crate::trace_once!($($arg)+),
+        }
     };
 }
 
-/// Returns whether the current build is in "very strict" mode.
-/// In our vendored build, we always return false.
-pub fn is_rerun_very_strict() -> bool {
-    false
+/// Log a warning in debug builds, or a debug message in release builds.
+///
+/// This is useful for logging messages that should be visible during development
+/// (to help catch issues), but shouldn't spam the logs in release builds.
+///
+/// In debug builds, the message is prefixed with "DEBUG: " and logged at WARN level.
+/// In release builds, the message is logged at DEBUG level without any prefix.
+#[cfg(debug_assertions)]
+#[macro_export]
+macro_rules! debug_warn {
+    ($($arg:tt)+) => {
+        $crate::warn!("DEBUG: {}", format_args!($($arg)+))
+    };
 }
 
-/// Check environment variable flag ("0"/"false"/"no"/"off" = false, "1"/"true"/"yes"/"on" = true).
+/// Log a warning in debug builds, or a debug message in release builds.
+///
+/// This is useful for logging messages that should be visible during development
+/// (to help catch issues), but shouldn't spam the logs in release builds.
+///
+/// In debug builds, the message is prefixed with "DEBUG: " and logged at WARN level.
+/// In release builds, the message is logged at DEBUG level without any prefix.
+#[cfg(not(debug_assertions))]
+#[macro_export]
+macro_rules! debug_warn {
+    ($($arg:tt)+) => {
+        $crate::debug!($($arg)+)
+    };
+}
+
+/// Like [`debug_warn!`], but only logs once per call site.
+///
+/// This is useful for logging messages that should be visible during development
+/// (to help catch issues), but shouldn't spam the logs in release builds.
+///
+/// In debug builds, the message is prefixed with "DEBUG: " and logged at WARN level.
+/// In release builds, the message is logged at DEBUG level without any prefix.
+#[cfg(debug_assertions)]
+#[macro_export]
+macro_rules! debug_warn_once {
+    ($($arg:tt)+) => {
+        $crate::warn_once!("DEBUG: {}", format_args!($($arg)+))
+    };
+}
+
+/// Like [`debug_warn!`], but only logs once per call site.
+///
+/// This is useful for logging messages that should be visible during development
+/// (to help catch issues), but shouldn't spam the logs in release builds.
+///
+/// In debug builds, the message is prefixed with "DEBUG: " and logged at WARN level.
+/// In release builds, the message is logged at DEBUG level without any prefix.
+#[cfg(not(debug_assertions))]
+#[macro_export]
+macro_rules! debug_warn_once {
+    ($($arg:tt)+) => {
+        $crate::debug_once!($($arg)+)
+    };
+}
+
+/// Re-exports of other crates.
+pub mod external {
+    pub use log;
+}
+
+/// Never log anything less serious than a `ERROR` from these crates.
+#[cfg(any(feature = "setup", not(target_arch = "wasm32")))]
+const CRATES_AT_ERROR_LEVEL: &[&str] = &[
+    // silence rustls in release mode: https://github.com/rerun-io/rerun/issues/3104
+    #[cfg(not(debug_assertions))]
+    "rustls",
+];
+
+/// Never log anything less serious than a `WARN` from these crates.
+#[cfg(any(feature = "setup", not(target_arch = "wasm32")))]
+const CRATES_AT_WARN_LEVEL: &[&str] = &[
+    // wgpu crates spam a lot on info level, which is really annoying
+    // TODO(emilk): remove once https://github.com/gfx-rs/wgpu/issues/3206 is fixed
+    "naga",
+    "tracing",
+    "wgpu_core",
+    "wgpu_hal",
+    "zbus",
+];
+
+/// Never log anything less serious than a `INFO` from these crates.
+///
+/// These creates are quite spammy on debug, drowning out what we care about:
+#[cfg(any(feature = "setup", not(target_arch = "wasm32")))]
+const CRATES_AT_INFO_LEVEL: &[&str] = &[
+    "datafusion_optimizer",
+    "datafusion",
+    "h2",
+    "hyper",
+    "opentelemetry", // Spams about NoopMeterProvider
+    "prost_build",
+    "reqwest", // Spams "starting new connection: …"
+    "sqlparser",
+    "tonic_web",
+    "tower",
+    "ureq",
+    // only let rustls log in debug mode: https://github.com/rerun-io/rerun/issues/3104
+    #[cfg(debug_assertions)]
+    "rustls",
+    // walkers generates noise around tile download, see https://github.com/podusowski/walkers/issues/199
+    "walkers",
+    // winit 0.30.5 spams about `set_cursor_visible` calls. It's gone on winit master, so hopefully gone in next winit release.
+    "winit",
+];
+
+/// Determines the default log filter.
+///
+/// Native: Get `RUST_LOG` environment variable or `info`, if not set.
+/// Also sets some other log levels on crates that are too loud.
+///
+/// Web: `debug` since web console allows arbitrary filtering.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn default_log_filter() -> String {
+    let base_log_filter = if cfg!(debug_assertions) {
+        // We want the DEBUG level to be useful yet not too spammy.
+        // This is a good way to enforce that.
+        "debug"
+    } else {
+        // Important to keep the default at (at least) "info",
+        // as we print crucial information at INFO,
+        // e.g. the ip:port when hosting a server with `rerun-cli`.
+        "info"
+    };
+    log_filter_from_env_or_default(base_log_filter)
+}
+
+/// Determines the default log filter.
+///
+/// Native: Get `RUST_LOG` environment variable or `info`, if not set.
+/// Also sets some other log levels on crates that are too loud.
+///
+/// Web: `debug` since web console allows arbitrary filtering.
+#[cfg(target_arch = "wasm32")]
+pub fn default_log_filter() -> String {
+    "debug".to_owned()
+}
+
+/// Determines the log filter from the `RUST_LOG` environment variable or an explicit default.
+///
+/// Always adds builtin filters as well.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn log_filter_from_env_or_default(default_base_log_filter: &str) -> String {
+    let rust_log = std::env::var("RUST_LOG").unwrap_or_else(|_| default_base_log_filter.to_owned());
+    add_builtin_log_filter(&rust_log)
+}
+
+/// Adds builtin log level filters for crates that are too verbose.
+#[cfg(not(target_arch = "wasm32"))]
+fn add_builtin_log_filter(base_log_filter: &str) -> String {
+    use std::fmt::Write as _;
+
+    let mut rust_log = base_log_filter.to_lowercase();
+
+    if base_log_filter != "off" {
+        // If base level is `off`, don't opt-in to anything.
+
+        for crate_name in crate::CRATES_AT_ERROR_LEVEL {
+            if !rust_log.contains(&format!("{crate_name}=")) {
+                write!(rust_log, ",{crate_name}=error").ok();
+            }
+        }
+
+        if base_log_filter != "error" {
+            // If base level is `error`, don't opt-in to `warn` or `info`.
+
+            for crate_name in crate::CRATES_AT_WARN_LEVEL {
+                if !rust_log.contains(&format!("{crate_name}=")) {
+                    write!(rust_log, ",{crate_name}=warn").ok();
+                }
+            }
+
+            if base_log_filter != "warn" {
+                // If base level is not `error`/`warn`, don't opt-in to `info`.
+
+                for crate_name in crate::CRATES_AT_INFO_LEVEL {
+                    if !rust_log.contains(&format!("{crate_name}=")) {
+                        write!(rust_log, ",{crate_name}=info").ok();
+                    }
+                }
+            }
+        }
+    }
+
+    //TODO(#8077): should be removed as soon as the upstream issue is resolved
+    rust_log += ",walkers::download=off";
+
+    rust_log
+}
+
+/// Should we log this message given the filter?
+#[cfg(feature = "setup")]
+fn is_log_enabled(
+    filter: tracing_subscriber::filter::LevelFilter,
+    metadata: &tracing::Metadata<'_>,
+) -> bool {
+    if CRATES_AT_ERROR_LEVEL
+        .iter()
+        .any(|crate_name| metadata.target().starts_with(crate_name))
+    {
+        *metadata.level() <= tracing_subscriber::filter::LevelFilter::ERROR
+    } else if CRATES_AT_WARN_LEVEL
+        .iter()
+        .any(|crate_name| metadata.target().starts_with(crate_name))
+    {
+        *metadata.level() <= tracing_subscriber::filter::LevelFilter::WARN
+    } else if CRATES_AT_INFO_LEVEL
+        .iter()
+        .any(|crate_name| metadata.target().starts_with(crate_name))
+    {
+        *metadata.level() <= tracing_subscriber::filter::LevelFilter::INFO
+    } else {
+        *metadata.level() <= filter
+    }
+}
+
+/// Check if an environment variable is set to a truthy value.
+///
+/// Returns `true` if the environment variable is set to "1/true/yes/on" (case-insensitive).
+/// Returns `false` if the environment variable is set to "0/false/no/off" (case-insensitive).
+/// Otherwise returns `None`.
+///
+/// # Example
+///
+/// ```ignore
+/// if env_var_flag("TELEMETRY_ENABLED") == Some(true) {
+///     // enable telemetry
+/// }
+/// ```
 pub fn env_var_flag(var_name: &str) -> Option<bool> {
     match std::env::var(var_name)
         .ok()?
@@ -45,62 +311,73 @@ pub fn env_var_flag(var_name: &str) -> Option<bool> {
 }
 
 /// Check if an environment variable is set to a truthy value.
+///
+/// Returns `true` if the environment variable is set to "1/true/yes/on" (case-insensitive).
+/// Otherwise returns `false`.
+///
+/// # Example
+///
+/// ```ignore
+/// if env_var_is_truthy("TELEMETRY_ENABLED") {
+///     // enable telemetry
+/// }
+/// ```
 pub fn env_var_is_truthy(var_name: &str) -> bool {
     env_var_flag(var_name).unwrap_or(false)
 }
 
-pub fn setup_logging() -> Result<(), Box<dyn std::error::Error>> {
-    // flatland_observe subscriber would be installed by the app.
-    // This is a no-op for vendored crates that don't need it.
-    Ok(())
+/// Is `RERUN_VERY_STRICT` set to a truthy value?
+///
+/// In very strict mode, Rerun may panic anywhere, at any time, for any reason whenever it
+/// detects something it does not like — e.g. out-of-order chunks, unsorted timelines,
+/// or other invariant violations. Very strict mode is meant for development, testing and
+/// CI, never for production: enable it to catch silent corruption early.
+///
+/// The result is cached on the first call, so subsequent calls are very cheap and
+/// changing the environment variable at runtime has no effect.
+pub fn is_rerun_very_strict() -> bool {
+    static VERY_STRICT: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *VERY_STRICT.get_or_init(|| env_var_is_truthy("RERUN_VERY_STRICT"))
 }
 
-/// Extension trait adding context to Result types (used by vendored Rerun code).
-pub trait ResultExt<T, E> {
-    fn with_context<C, F>(self, f: F) -> Result<T, anyhow::Error>
-    where
-        C: std::fmt::Display + Send + Sync + 'static,
-        F: FnOnce() -> C;
-
-    /// Logs an error if the result is an error and returns the result.
-    #[track_caller]
-    fn ok_or_log_error(self) -> Option<T>;
-
-    /// Logs an error if the result is an error and returns the result, but only once.
-    #[track_caller]
-    fn ok_or_log_error_once(self) -> Option<T>;
+/// Shorten a path to a Rust source file.
+///
+/// Example input:
+/// * `/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs`
+/// * `crates/rerun/src/main.rs`
+/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs`
+///
+/// Example output:
+/// * `tokio-1.24.1/src/runtime/runtime.rs`
+/// * `rerun/src/main.rs`
+/// * `core/src/ops/function.rs`
+#[allow(clippy::allow_attributes, dead_code)] // only used on web and in tests
+fn shorten_file_path(file_path: &str) -> &str {
+    if let Some(i) = file_path.rfind("/src/") {
+        if let Some(prev_slash) = file_path[..i].rfind('/') {
+            &file_path[prev_slash + 1..]
+        } else {
+            file_path
+        }
+    } else {
+        file_path
+    }
 }
 
-impl<T, E: std::fmt::Display + Send + Sync + 'static> ResultExt<T, E> for Result<T, E> {
-    fn with_context<C, F>(self, f: F) -> Result<T, anyhow::Error>
-    where
-        C: std::fmt::Display + Send + Sync + 'static,
-        F: FnOnce() -> C,
-    {
-        self.map_err(|e| anyhow::anyhow!("{}", f()).context(e))
-    }
-
-    #[track_caller]
-    fn ok_or_log_error(self) -> Option<T> {
-        match self {
-            Ok(t) => Some(t),
-            Err(err) => {
-                let loc = std::panic::Location::caller();
-                tracing::error!("{}:{} {err}", loc.file(), loc.line());
-                None
-            }
-        }
-    }
-
-    #[track_caller]
-    fn ok_or_log_error_once(self) -> Option<T> {
-        match self {
-            Ok(t) => Some(t),
-            Err(err) => {
-                let loc = std::panic::Location::caller();
-                crate::error_once!("{}:{} {err}", loc.file(), loc.line());
-                None
-            }
-        }
+#[test]
+fn test_shorten_file_path() {
+    for (before, after) in [
+        (
+            "/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs",
+            "tokio-1.24.1/src/runtime/runtime.rs",
+        ),
+        ("crates/rerun/src/main.rs", "rerun/src/main.rs"),
+        (
+            "/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs",
+            "core/src/ops/function.rs",
+        ),
+        ("/weird/path/file.rs", "/weird/path/file.rs"),
+    ] {
+        assert_eq!(shorten_file_path(before), after);
     }
 }

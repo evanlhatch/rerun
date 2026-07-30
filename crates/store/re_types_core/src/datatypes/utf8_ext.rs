@@ -2,6 +2,27 @@ use crate::ComponentIdentifier;
 
 use super::Utf8;
 
+impl Utf8 {
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl From<String> for Utf8 {
+    #[inline]
+    fn from(value: String) -> Self {
+        Self(value.into())
+    }
+}
+
+impl From<&str> for Utf8 {
+    #[inline]
+    fn from(value: &str) -> Self {
+        Self(value.into())
+    }
+}
+
 impl From<Utf8> for String {
     #[inline]
     fn from(value: Utf8) -> Self {
@@ -39,4 +60,8 @@ impl From<ComponentIdentifier> for Utf8 {
     }
 }
 
-
+impl std::fmt::Debug for Utf8 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.as_str())
+    }
+}

@@ -142,8 +142,8 @@ impl ChunkId {
         } else {
             Err(WrongDatatypeError {
                 column_name: None,
-                expected: Self::arrow_datatype().to_string(),
-                actual: array.data_type().clone().to_string(),
+                expected: Self::arrow_datatype().into(),
+                actual: array.data_type().clone().into(),
             })
         }
     }

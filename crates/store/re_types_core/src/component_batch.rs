@@ -250,15 +250,12 @@ pub fn repartition_list_array(
     list_array: ListArray,
     lengths: impl IntoIterator<Item = usize>,
 ) -> arrow::error::Result<ListArray> {
-    use arrow::array::Array;
-    use arrow::datatypes::DataType;
-    let DataType::List(field) = Array::data_type(&list_array) else { unreachable!() };
-    let field = field.clone();
-    let values = list_array.values().clone();
+    let (field, _offsets, values, _nulls) = list_array.into_parts();
 
     let offsets = OffsetBuffer::from_lengths(lengths);
+    let nulls = None;
 
-    ListArray::try_new(field, offsets, values, None)
+    ListArray::try_new(field, offsets, values, nulls)
 }
 
 impl SerializedComponentBatch {

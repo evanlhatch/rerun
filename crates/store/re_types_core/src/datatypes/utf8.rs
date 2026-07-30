@@ -23,7 +23,7 @@ use crate::{ComponentDescriptor, ComponentType};
 use crate::{DeserializationError, DeserializationResult};
 
 /// **Datatype**: A string of text, encoded as UTF-8.
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, ::re_byte_size::SizeBytes)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, ::re_byte_size::SizeBytes)]
 #[repr(transparent)]
 pub struct Utf8(pub crate::ArrowString);
 
@@ -140,50 +140,9 @@ impl From<crate::ArrowString> for Utf8 {
     }
 }
 
-impl From<&str> for Utf8 {
-    #[inline]
-    fn from(value: &str) -> Self {
-        Self(crate::ArrowString::from(value))
-    }
-}
-
-impl From<String> for Utf8 {
-    #[inline]
-    fn from(value: String) -> Self {
-        Self(crate::ArrowString::from(value))
-    }
-}
-
 impl From<Utf8> for crate::ArrowString {
     #[inline]
     fn from(value: Utf8) -> Self {
         value.0
-    }
-}
-
-impl Utf8 {
-    /// Returns the string as a &str slice.
-    #[inline]
-    pub fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
-
-    /// Check if the string starts with the given prefix.
-    #[inline]
-    pub fn starts_with(&self, prefix: &str) -> bool {
-        self.0.as_str().starts_with(prefix)
-    }
-
-    /// Strip a prefix from the string.
-    #[inline]
-    pub fn strip_prefix(&self, prefix: &str) -> Option<&str> {
-        self.0.as_str().strip_prefix(prefix)
-    }
-}
-
-
-impl std::fmt::Display for Utf8 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }

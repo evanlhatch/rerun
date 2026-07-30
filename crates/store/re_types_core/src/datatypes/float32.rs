@@ -112,10 +112,10 @@ impl crate::Loggable for Float32 {
     {
         use crate::{Loggable as _, ResultExt as _, arrow_zip_validity::ZipValidity};
         use arrow::{array::*, buffer::*, datatypes::*};
-        if let Some(nulls) = arrow_data.nulls() {
-            if nulls.null_count() != 0 {
-                return Err(DeserializationError::missing_data());
-            }
+        if let Some(nulls) = arrow_data.nulls()
+            && nulls.null_count() != 0
+        {
+            return Err(DeserializationError::missing_data());
         }
         Ok({
             let slice = arrow_data
@@ -145,30 +145,5 @@ impl From<Float32> for f32 {
     #[inline]
     fn from(value: Float32) -> Self {
         value.0
-    }
-}
-
-impl Float32 {
-    #[inline]
-    pub fn is_nan(&self) -> bool {
-        self.0.is_nan()
-    }
-
-    #[inline]
-    pub fn is_sign_positive(&self) -> bool {
-        self.0.is_sign_positive()
-    }
-
-    #[inline]
-    pub fn is_sign_negative(&self) -> bool {
-        self.0.is_sign_negative()
-    }
-}
-
-impl std::ops::Deref for Float32 {
-    type Target = f32;
-    #[inline]
-    fn deref(&self) -> &f32 {
-        &self.0
     }
 }
