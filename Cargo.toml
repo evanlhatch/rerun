@@ -6,16 +6,49 @@ members = [
   "crates/top/*",
   "crates/utils/*",
   "crates/viewer/*",
-  "docs/snippets",
-  "examples/rust/*",
-  "rerun_py",
-  "run_wasm",
-  "tests/rust/log_benchmark",
-  "tests/rust/plot_dashboard_stress",
-  "tests/rust/re_integration_test",
-  "tests/rust/test_*",
 ]
-exclude = ["examples/rust/revy", "examples/rust/chess_robby_fischer"]
+exclude = [
+  # Build tooling — codegen, not needed at runtime
+  "crates/build/re_types_builder",
+  "crates/build/re_protos_builder",
+  # Top-level binaries — flatland-ui composes its own app
+  "crates/top/rerun",
+  "crates/top/rerun_c",
+  "crates/top/rerun-cli",
+  "crates/top/re_sdk",
+  "crates/top/re_server",
+  # Store crates not in flatland dep chain
+  "crates/store/re_datafusion",
+  "crates/store/re_dataframe",
+  "crates/store/re_dataframe_ui",
+  "crates/store/re_grpc_server",
+  "crates/store/re_hdf5",
+  "crates/store/re_redap_tests",
+  # Viewer crates not in flatland dep chain
+  "crates/viewer/re_viewer",
+  "crates/viewer/re_viewer_mcp",
+  "crates/viewer/re_chunk_store_ui",
+  "crates/viewer/re_component_fallbacks",
+  "crates/viewer/re_dataframe_ui",
+  "crates/viewer/re_dev_tools",
+  "crates/viewer/re_memory_view",
+  "crates/viewer/re_perf_telemetry",
+  "crates/viewer/re_recording_panel",
+  "crates/viewer/re_redap_browser",
+  "crates/viewer/re_renderer_examples",
+  "crates/viewer/re_test_context",
+  "crates/viewer/re_test_mocks",
+  "crates/viewer/re_test_viewport",
+  "crates/viewer/re_view_dataframe",
+  "crates/viewer/re_view_state_timeline",
+  "crates/viewer/re_view_text_document",
+  "crates/viewer/re_web_viewer_server",
+  "crates/viewer/re_web_tests",
+  # Utils not needed
+  "crates/utils/re_crash_handler",
+  "examples/rust/revy",
+  "examples/rust/chess_robby_fischer",
+]
 
 [workspace.package]
 authors = ["rerun.io <opensource@rerun.io>"]
