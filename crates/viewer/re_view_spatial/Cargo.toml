@@ -24,7 +24,7 @@ all-features = true
 nasm = ["re_video/nasm"]
 
 ## Enable Gaussian Splatting visualizer.
-gaussian-splat = ["dep:re_sdk_types", "re_renderer/gaussian-splat", "re_sdk_types/gaussian-splat"]
+gaussian-splat = ["re_renderer/gaussian-splat", "re_sdk_types/gaussian-splat"]
 
 [dependencies]
 
