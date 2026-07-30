@@ -17,13 +17,17 @@
 
 mod errors;
 mod footer;
+#[cfg(feature = "transport")]
 mod frames;
+#[cfg(feature = "transport")]
 mod log_msg;
 
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 mod decoder;
 
 #[cfg(feature = "encoder")]
+#[cfg(feature = "transport")]
 mod encoder;
 
 #[cfg(test)]
@@ -31,42 +35,55 @@ mod encoder;
 pub(crate) mod test_util;
 
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 mod chunk_reader;
 
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 mod fingerprint;
 
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 mod footer_reader;
 
 #[cfg(feature = "encoder")]
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "transport")]
 mod file_sink;
 
+#[cfg(feature = "stream_from_http")]
 #[cfg(feature = "stream_from_http")]
 pub mod stream_from_http;
 
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
+#[cfg(feature = "transport")]
 pub use self::chunk_reader::read_chunks;
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 pub use self::decoder::{
     DecodeError, Decoder, DecoderApp, DecoderEntrypoint, DecoderIterator, DecoderStream,
     DecoderTransport,
 };
 #[cfg(feature = "encoder")]
+#[cfg(feature = "transport")]
 pub use self::encoder::{EncodeError, Encoder};
 pub use self::errors::{CodecError, CodecResult, NotAnRrdError, OptionsError};
 #[cfg(feature = "encoder")]
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "transport")]
 pub use self::file_sink::{FileFlushError, FileSink, FileSinkError, FileSinkOptions};
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 pub use self::fingerprint::RrdFingerprint;
 pub use self::footer::{
     RawRrdManifest, RrdFooter, RrdManifest, RrdManifestBuilder, RrdManifestSha256,
     RrdManifestStaticMap, RrdManifestTemporalMap, RrdManifestTemporalMapEntry,
 };
 #[cfg(feature = "decoder")]
+#[cfg(feature = "transport")]
 pub use self::footer_reader::{enumerate_rrd_stores, read_rrd_footer};
+#[cfg(feature = "transport")]
 pub use self::frames::{
     Compression, CrateVersion, EncodingOptions, MessageHeader, MessageKind, Serializer,
     StreamFooter, StreamFooterEntry, StreamHeader,

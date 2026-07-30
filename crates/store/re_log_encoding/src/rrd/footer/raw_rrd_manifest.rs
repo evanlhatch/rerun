@@ -15,7 +15,9 @@ use re_log_types::external::re_tuid::Tuid;
 use re_log_types::{AbsoluteTimeRange, EntityPath, StoreId, TimeType, TimelineName};
 use re_types_core::ComponentDescriptor;
 
-use crate::{CodecError, CodecResult, Decodable as _, StreamFooterEntry, ToApplication as _};
+use crate::{CodecError, CodecResult, Decodable as _};
+#[cfg(feature = "transport")]
+use crate::{StreamFooter, StreamFooterEntry};
 
 /// The payload found in [`super::RrdFooter`]s.
 ///
@@ -343,6 +345,7 @@ impl RawRrdManifest {
     ///     .into_iter()
     ///     .find(|m| m.store_id.kind() == StoreKind::Recording)?;
     /// ```
+    #[cfg(feature = "transport")]
     pub fn from_rrd_bytes(rrd_bytes: &[u8]) -> CodecResult<Vec<Self>> {
         let stream_footer = match crate::StreamFooter::from_rrd_bytes(rrd_bytes) {
             Ok(footer) => footer,
@@ -382,14 +385,16 @@ impl RawRrdManifest {
                 });
             }
 
-            let rrd_footer =
-                re_protos::log_msg::v1alpha1::RrdFooter::from_rrd_bytes(rrd_footer_bytes)?;
-            let new_manifests: Vec<_> = rrd_footer
-                .manifests
-                .iter()
-                .map(|manifest| manifest.to_application(()))
-                .try_collect()?;
-            manifests.extend(new_manifests);
+            #[cfg(feature = "transport")]
+            {
+                let rrd_footer = re_protos::log_msg::v1alpha1::RrdFooter::from_rrd_bytes(rrd_footer_bytes)?;
+                let new_manifests: Vec<_> = rrd_footer
+                    .manifests
+                    .iter()
+                    .map(|manifest| manifest.to_application(()))
+                    .try_collect()?;
+                manifests.extend(new_manifests);
+            }
         }
 
         Ok(manifests)

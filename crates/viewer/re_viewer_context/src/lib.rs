@@ -163,7 +163,7 @@ pub use self::visitor_flow_control::VisitorControlFlow; // Historical reasons
 
 pub mod external {
     #[cfg(not(target_arch = "wasm32"))]
-    pub use tokio;
+    // pub use tokio; // removed — flatland vendor has no tokio
     pub use {
         nohash_hasher, re_chunk_store, re_entity_db, re_log_types, re_query, re_string_interner,
         re_tf, re_ui,

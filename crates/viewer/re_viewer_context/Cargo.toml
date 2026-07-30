@@ -40,7 +40,7 @@ re_entity_db.workspace = true
 re_error.workspace = true
 re_format.workspace = true
 re_log_channel.workspace = true
-re_log_encoding = { workspace = true, features = ["decoder", "encoder"] }
+re_log_encoding = { workspace = true, features = ["encoder"] }
 re_video = { workspace = true, optional = true }
 re_redap_client.workspace = true
 re_memory.workspace = true
@@ -98,7 +98,6 @@ vec1.workspace = true
 # Native dependencies:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 home.workspace = true
-tokio.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 re_async.workspace = true

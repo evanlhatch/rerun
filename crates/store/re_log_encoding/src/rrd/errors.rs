@@ -1,5 +1,6 @@
 use re_build_info::CrateVersion;
 use re_chunk::ChunkError;
+#[cfg(feature = "transport")]
 use re_protos::common::v1alpha1::ext;
 
 pub type CodecResult<T> = Result<T, CodecError>;
@@ -48,12 +49,17 @@ pub enum CodecError {
     ArrowSerialization(::arrow::error::ArrowError),
 
     #[error("Protobuf encoding error: {0}")]
+    #[cfg(feature = "transport")]
+    #[cfg(feature = "transport")]
     ProtobufEncode(#[from] re_protos::external::prost::EncodeError),
 
     #[error("Protobuf error: {0}")]
+    #[cfg(feature = "transport")]
+    #[cfg(feature = "transport")]
     ProtobufDecode(#[from] re_protos::external::prost::DecodeError),
 
     #[error("Could not convert type from protobuf: {0}")]
+    #[cfg(feature = "transport")]
     TypeConversion(Box<re_protos::TypeConversionError>),
 
     #[error("Invalid chunk: {0}")]
@@ -98,6 +104,7 @@ const _: () = assert!(
     "Error type is too large. Try to reduce its size by boxing some of its variants.",
 );
 
+#[cfg(feature = "transport")]
 impl From<re_protos::TypeConversionError> for CodecError {
     fn from(value: re_protos::TypeConversionError) -> Self {
         Self::TypeConversion(Box::new(value))
@@ -110,6 +117,7 @@ impl From<ChunkError> for CodecError {
     }
 }
 
+#[cfg(feature = "transport")]
 impl From<ext::StoreIdMissingApplicationIdError> for CodecError {
     fn from(value: ext::StoreIdMissingApplicationIdError) -> Self {
         Self::StoreIdMissingApplicationId {
@@ -119,12 +127,16 @@ impl From<ext::StoreIdMissingApplicationIdError> for CodecError {
     }
 }
 
+#[cfg(feature = "transport")]
 impl From<ext::StoreIdFromProtoError> for CodecError {
     fn from(value: ext::StoreIdFromProtoError) -> Self {
         match value {
+#[cfg(feature = "transport")]
             ext::StoreIdFromProtoError::MissingApplicationId(err) => err.into(),
+#[cfg(feature = "transport")]
             ext::StoreIdFromProtoError::InvalidApplicationId(err) => {
-                re_protos::TypeConversionError::from(err).into()
+                #[cfg(feature = "transport")]
+                { re_protos::TypeConversionError::from(err).into() }
             }
         }
     }

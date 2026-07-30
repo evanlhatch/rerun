@@ -4,10 +4,10 @@ use re_chunk::{Chunk, ChunkId};
 
 use crate::{RawRrdManifest, RrdManifest};
 
-#[cfg(feature = "decoder")]
+#[cfg(all(feature = "decoder", feature = "transport"))]
 mod rrd;
 
-#[cfg(feature = "decoder")]
+#[cfg(all(feature = "decoder", feature = "transport"))]
 pub use self::rrd::RrdChunkProvider;
 
 /// Backend that exposes an indexed chunk source.

@@ -71,18 +71,23 @@
 pub mod chunk_provider;
 pub mod rrd;
 
+#[cfg(feature = "transport")]
 mod app_id_injector;
+#[cfg(feature = "transport")]
 mod transport_to_app;
 
 pub mod external {
     pub use lz4_flex;
 }
 
+#[cfg(feature = "transport")]
 pub use self::app_id_injector::{
     ApplicationIdInjector, CachingApplicationIdInjector, DummyApplicationIdInjector,
 };
 #[cfg(feature = "decoder")]
+#[cfg(all(feature = "decoder", feature = "transport"))]
 pub use self::chunk_provider::RrdChunkProvider;
 pub use self::chunk_provider::{ChunkProvider, ChunkProviderError};
 pub use self::rrd::*;
+#[cfg(feature = "transport")]
 pub use self::transport_to_app::{ToApplication, ToTransport};

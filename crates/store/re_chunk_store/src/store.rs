@@ -1154,6 +1154,7 @@ impl ChunkStore {
     ///
     /// See also:
     /// * [`ChunkStore::new`]
+    #[cfg(feature = "lazy")]
     pub fn from_rrd_reader(
         store_config: &ChunkStoreConfig,
         reader: &mut dyn std::io::Read,
@@ -1178,6 +1179,7 @@ impl ChunkStore {
     ///
     /// See also:
     /// * [`ChunkStore::new`]
+    #[cfg(feature = "lazy")]
     pub async fn from_rrd_reader_async(
         store_config: &ChunkStoreConfig,
         reader: &mut (dyn AsyncRead + Unpin + Send),
@@ -1262,6 +1264,7 @@ impl ChunkStore {
     ///
     /// See also:
     /// * [`ChunkStore::new_handle`]
+    #[cfg(feature = "lazy")]
     pub fn handle_from_rrd_reader(
         store_config: &ChunkStoreConfig,
         mut reader: impl std::io::Read,
@@ -1278,6 +1281,7 @@ impl ChunkStore {
     ///
     /// See also:
     /// * [`ChunkStore::new_handle`]
+    #[cfg(feature = "lazy")]
     pub async fn handle_from_rrd_reader_async<R: AsyncRead + Unpin + Send>(
         store_config: &ChunkStoreConfig,
         mut reader: R,

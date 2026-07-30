@@ -247,11 +247,7 @@ argh = "0.1.19"
 arrayvec = "0.7.6"
 array-init = "2.1"
 arrow = { version = "58.3", default-features = false, features = [
-  # NOTE: Similar to `datafusion`, we enable many features on a workspace level
-  # to avoid re-compilation when changing compile targets.
-  "ffi",
   "ipc",
-  "json",
 ] }
 async-stream = "0.3.6"
 async-trait = "0.1.89"

@@ -5,6 +5,7 @@ use crate::EntityDb;
 #[derive(thiserror::Error, Debug)]
 pub enum StoreLoadError {
     #[error(transparent)]
+    #[cfg(feature = "lazy")]
     Decode(#[from] re_log_encoding::DecodeError),
 
     #[error(transparent)]
@@ -26,6 +27,7 @@ pub struct StoreBundle {
 impl StoreBundle {
     /// Decode an rrd stream.
     /// It can theoretically contain multiple recordings, and blueprints.
+    #[cfg(feature = "lazy")]
     pub fn from_rrd<R: std::io::Read>(
         reader: std::io::BufReader<R>,
         data_source: &re_log_channel::LogSource,

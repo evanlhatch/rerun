@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use re_log_encoding::RrdManifest;
 use re_log_types::{LogMsg, StoreId, TableMsg, impl_into_enum};
+#[cfg(feature = "transport")]
 use re_protos::sdk_comms::v1alpha1::{GetViewerStateResponse, SetTimeCursorResponse};
 
 /// Message from a data source.
@@ -200,3 +201,12 @@ impl re_byte_size::SizeBytes for DataSourceUiCommand {
         }
     }
 }
+
+
+#[cfg(not(feature = "transport"))]
+#[derive(Debug, Clone, Default)]
+pub struct GetViewerStateResponse;
+
+#[cfg(not(feature = "transport"))]
+#[derive(Debug, Clone, Default)]
+pub struct SetTimeCursorResponse;
