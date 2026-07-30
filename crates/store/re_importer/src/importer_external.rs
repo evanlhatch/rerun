@@ -57,7 +57,7 @@ pub static EXTERNAL_IMPORTER_PATHS: LazyLock<Vec<PathBuf>> = LazyLock::new(|| {
     // For each file name, collect the paths to all executables that match that name.
     let mut executables = HashMap::<String, IndexSet<PathBuf>>::default();
     for dirpath in dirpaths {
-        re_tracing::profile_scope!("dir", dirpath.to_string_lossy());
+        re_tracing::profile_scope!("dir");
         let Ok(dir) = std::fs::read_dir(dirpath) else {
             continue;
         };
