@@ -120,6 +120,7 @@ impl SizeBytes for arrow::array::FixedSizeBinaryArray {
 
 impl SizeBytes for arrow::array::RecordBatch {
     fn heap_size_bytes(&self) -> u64 {
+        use arrow::array::Array;
         self.columns().iter().map(|c| c.get_array_memory_size() as u64).sum()
     }
 }
@@ -130,7 +131,7 @@ impl SizeBytes for arrow::datatypes::Schema {
 
 impl<T: arrow::datatypes::ArrowNativeType> SizeBytes for arrow::buffer::ScalarBuffer<T> {
     fn heap_size_bytes(&self) -> u64 {
-        std::mem::size_of_val(self.as_slice()) as u64
+        std::mem::size_of_val(&**self) as u64
     }
 }
 
@@ -140,8 +141,15 @@ impl SizeBytes for dyn arrow::array::Array {
     }
 }
 
+impl SizeBytes for arrow::array::ArrayData {
+    fn heap_size_bytes(&self) -> u64 {
+        self.get_array_memory_size() as u64
+    }
+}
+
 impl SizeBytes for arrow::array::GenericListArray<i32> {
     fn heap_size_bytes(&self) -> u64 {
+        use arrow::array::Array;
         self.get_array_memory_size() as u64
     }
 }
@@ -167,13 +175,13 @@ impl<T: SizeBytes, S> SizeBytes for std::collections::HashSet<T, S> {
 
 impl<T: SizeBytes> SizeBytes for parking_lot::RwLock<T> {
     fn heap_size_bytes(&self) -> u64 {
-        self.data_ptr().heap_size_bytes()
+        self.read().heap_size_bytes()
     }
 }
 
 impl<T: SizeBytes> SizeBytes for parking_lot::Mutex<T> {
     fn heap_size_bytes(&self) -> u64 {
-        self.data_ptr().heap_size_bytes()
+        self.lock().heap_size_bytes()
     }
 }
 
