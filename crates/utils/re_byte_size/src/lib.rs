@@ -161,6 +161,12 @@ impl<K: SizeBytes, V: SizeBytes, S> SizeBytes for std::collections::HashMap<K, V
     }
 }
 
+impl<K: SizeBytes, V: SizeBytes> SizeBytes for std::collections::BTreeMap<K, V> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.iter().map(|(k, v)| k.heap_size_bytes() + v.heap_size_bytes()).sum()
+    }
+}
+
 impl<T: SizeBytes> SizeBytes for std::collections::BTreeSet<T> {
     fn heap_size_bytes(&self) -> u64 {
         self.iter().map(|e| e.heap_size_bytes()).sum()

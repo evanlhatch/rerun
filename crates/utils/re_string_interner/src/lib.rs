@@ -267,7 +267,7 @@ macro_rules! declare_new_type {
         $vis:vis struct $StructName:ident;
     ) => {
         $(#[$meta])*
-        #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+        #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, re_byte_size::SizeBytes)]
         pub struct $StructName($crate::InternedString);
 
 
@@ -407,7 +407,7 @@ macro_rules! declare_new_type_nonempty {
     ) => {
         $crate::external::paste::paste! {
             $(#[$meta])*
-            #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, re_byte_size::SizeBytes)]
             pub struct $StructName($crate::InternedString);
 
             #[doc = "Error returned when constructing an invalid [`" $StructName "`]."]
