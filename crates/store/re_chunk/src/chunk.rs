@@ -107,7 +107,7 @@ impl ChunkComponents {
 
             let left_array = widen_binary_arrays(&left_column.list_array);
             let right_array = widen_binary_arrays(&right_column.list_array);
-            re_arrow_util::ensure_similar(left_array.as_ref(), right_array.as_ref())
+            let _left_data = left_array.to_data(); let _right_data = right_array.to_data(); re_arrow_util::ensure_similar(&_left_data, &_right_data)
                 .with_context(|| format!("Component {component:?}"))?;
         }
         Ok(())
