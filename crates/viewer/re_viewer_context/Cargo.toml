@@ -20,6 +20,9 @@ default = []
 
 ## Enable Gaussian Splatting support.
 gaussian-splat = ["re_renderer/gaussian-splat"]
+
+## Enable DataFrame query support (pulls in datafusion).
+dataframe = ["dep:datafusion"]
 testing = []
 
 [dependencies]
@@ -61,7 +64,7 @@ bitflags.workspace = true
 bytemuck.workspace = true
 camino.workspace = true
 crossbeam.workspace = true
-datafusion.workspace = true
+datafusion = { workspace = true, optional = true }
 directories.workspace = true
 egui_tiles.workspace = true
 egui-wgpu.workspace = true
