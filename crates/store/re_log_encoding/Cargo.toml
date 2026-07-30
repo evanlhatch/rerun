@@ -6,9 +6,19 @@ publish = false
 
 [features]
 default = []
-decoder = []
+
+## Enable loading data from an .rrd file.
+decoder = ["dep:bytes", "dep:re_async"]
+
+## Enable encoding of log messages to an .rrd file/stream.
 encoder = []
-stream_from_http = []
+
+## Enable streaming of .rrd files from HTTP.
+stream_from_http = [
+  "decoder",
+  "dep:re_async",
+  "dep:web-time",
+]
 
 [dependencies]
 parking_lot.workspace = true
@@ -28,5 +38,10 @@ re_build_info.workspace = true
 re_arrow_util.workspace = true
 re_log.workspace = true
 re_log_types.workspace = true
-arrow.workspace = true
+arrow = { workspace = true, features = ["ipc"] }
 futures.workspace = true
+bytes = { workspace = true, optional = true }
+re_async = { workspace = true, optional = true }
+xxhash-rust.workspace = true
+thiserror.workspace = true
+sha2.workspace = true
