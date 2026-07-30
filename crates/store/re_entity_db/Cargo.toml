@@ -34,7 +34,6 @@ re_chunk_store.workspace = true
 re_format.workspace = true
 re_int.workspace = true
 re_log_channel.workspace = true
-re_log_encoding = { workspace = true, features = ["decoder"] }
 re_log_types.workspace = true
 re_log.workspace = true
 re_mutex.workspace = true
@@ -61,7 +60,6 @@ web-time.workspace = true
 
 [dev-dependencies]
 re_build_info.workspace = true
-re_log_encoding = { workspace = true, features = ["decoder", "encoder"] }
 
 anyhow.workspace = true
 insta.workspace = true
@@ -73,4 +71,3 @@ bench = false
 [[example]]
 name = "memory_usage"
 path = "examples/memory_usage.rs"
-required-features = ["re_log_encoding/decoder", "re_log_encoding/encoder"]
