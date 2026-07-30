@@ -41,7 +41,10 @@ mod selection_state;
 mod storage_context;
 pub mod store_hub;
 mod store_view_context;
+#[cfg(feature = "dataframe")]
 mod tables;
+#[cfg(not(feature = "dataframe"))]
+mod tables_stub;
 mod tensor;
 mod time_control;
 mod typed_entity_collections;
@@ -116,7 +119,10 @@ pub use self::selection_state::{
 pub use self::storage_context::StorageContext;
 pub use self::store_hub::{BlueprintPersistence, EntityDbUsages, StoreHub};
 pub use self::store_view_context::StoreViewContext;
+#[cfg(feature = "dataframe")]
 pub use self::tables::{TableStore, TableStores};
+#[cfg(not(feature = "dataframe"))]
+pub use self::tables_stub::{TableStore, TableStores};
 pub use self::tensor::{ImageStats, TensorStats};
 pub use self::time_control::{
     MoveDirection, MoveSpeed, TIME_PANEL_PATH, TimeControl, TimeControlCommand,
