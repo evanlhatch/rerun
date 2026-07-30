@@ -8,6 +8,10 @@ default = []
 setup = []
 
 [dependencies]
+tracing-log = { workspace = true, optional = true }
+tracing-subscriber.workspace = true
+parking_lot.workspace = true
+crossbeam.workspace = true
 tracing.workspace = true
 log-once.workspace = true
 anyhow.workspace = true
