@@ -473,7 +473,7 @@ impl Chunk {
                         let field = field.clone();
                         let offsets = filtered_list.offsets().clone();
                         let values = filtered_list.values().clone();
-                        ArrowListArray::new(field, offsets, values, None)
+                        ArrowListArray::try_new(field, offsets, values, None).unwrap()
                     } else {
                         filtered
                     };
