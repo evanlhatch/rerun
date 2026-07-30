@@ -467,7 +467,12 @@ impl Chunk {
                         // component.
                         // This will allow further operations on this densified chunk to take some
                         // very optimized paths.
-                        let (field, offsets, values, _nulls) = (filtered.field().clone(), filtered.offsets().clone(), filtered.values().clone(), filtered.nulls().cloned());
+                        use arrow::datatypes::DataType;
+                        let filtered_list = filtered.as_any().downcast_ref::<ArrowListArray>().unwrap();
+                        let DataType::List(field) = arrow::array::Array::data_type(filtered_list) else { unreachable!() };
+                        let field = field.clone();
+                        let offsets = filtered_list.offsets().clone();
+                        let values = filtered_list.values().clone();
                         ArrowListArray::new(field, offsets, values, None)
                     } else {
                         filtered

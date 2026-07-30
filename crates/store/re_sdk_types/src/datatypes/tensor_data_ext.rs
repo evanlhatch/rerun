@@ -3,6 +3,17 @@ use crate::tensor_data::TensorImageLoadError;
 
 use super::TensorData;
 
+impl Default for TensorData {
+    fn default() -> Self {
+        use arrow::buffer::ScalarBuffer;
+        Self {
+            shape: ScalarBuffer::from(vec![]),
+            names: None,
+            buffer: TensorBuffer::default(),
+        }
+    }
+}
+
 impl TensorData {
     /// Update the names of the dimensions.
     pub fn with_dim_names(

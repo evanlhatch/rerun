@@ -86,13 +86,14 @@ pub fn ensure_similar(a: &dyn Array, b: &dyn Array) -> anyhow::Result<()> {
 
 pub fn format_record_batch_with_width(
     batch: &RecordBatch,
-    _width: usize,
-) -> Vec<String> {
-    vec![format!(
+    _width: Option<usize>,
+    _sign: bool,
+) -> String {
+    format!(
         "RecordBatch({} rows, {} cols)",
         batch.num_rows(),
         batch.num_columns()
-    )]
+    )
 }
 
 // ── Array slicing / filtering (stubs) ────────────────────────────
