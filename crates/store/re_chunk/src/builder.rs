@@ -367,6 +367,7 @@ impl ChunkBuilder {
                         // columns around.
                         if let Some(datatype) = datatypes.get(&component_desc) {
                             re_arrow_util::arrays_to_list_array(datatype.clone(), &arrays)
+                                .ok()
                                 .map(|list_array| (component_desc, list_array))
                         } else {
                             re_arrow_util::arrays_to_list_array_opt(&arrays)

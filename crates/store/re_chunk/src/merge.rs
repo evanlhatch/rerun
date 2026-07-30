@@ -170,7 +170,7 @@ impl Chunk {
             lhs_per_component
                 .values()
                 .filter_map(|lhs_column| {
-                    { let _s = lhs_column.descriptor.to_string(); re_tracing::profile_scope!(_s.as_str()); }
+                    re_tracing::profile_scope!("merge_column");
                     if let Some(&rhs_column) =
                         rhs_per_component.get(&lhs_column.descriptor.component)
                     {
@@ -178,11 +178,7 @@ impl Chunk {
                             re_log::warn_once!("lhs and rhs have different component descriptors for the same component: {} != {}", lhs_column.descriptor, rhs_column.descriptor);
                         }
 
-                        { let _msg = format!(
-                            "concat (lhs={} rhs={})",
-                            re_format::format_uint(lhs_column.list_array.values().len()),
-                            re_format::format_uint(rhs_column.list_array.values().len()),
-                        ); re_tracing::profile_scope!(&_msg); }
+                        re_tracing::profile_scope!("merge_columns");
 
                         let list_array =
                             re_arrow_util::concat_arrays(&[&lhs_column.list_array, &rhs_column.list_array]).ok()?;
@@ -214,7 +210,7 @@ impl Chunk {
                         return None;
                     }
 
-                    { let _s = rhs_column.descriptor.component.to_string(); re_tracing::profile_scope!(_s.as_str()); }
+                    re_tracing::profile_scope!("merge_column");
 
                     if let Some(&lhs_column) =
                         lhs_per_component.get(&rhs_column.descriptor.component)
@@ -223,11 +219,7 @@ impl Chunk {
                             re_log::warn_once!("lhs and rhs have different component descriptors for the same component: {} != {}", lhs_column.descriptor, rhs_column.descriptor);
                         }
 
-                        { let _msg = format!(
-                            "concat (lhs={} rhs={})",
-                            re_format::format_uint(lhs_column.list_array.values().len()),
-                            re_format::format_uint(rhs_column.list_array.values().len()),
-                        ); re_tracing::profile_scope!(&_msg); }
+                        re_tracing::profile_scope!("merge_columns");
 
                         let list_array =
                             re_arrow_util::concat_arrays(&[&lhs_column.list_array, &rhs_column.list_array]).ok()?;

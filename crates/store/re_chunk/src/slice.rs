@@ -134,7 +134,7 @@ impl Chunk {
             heap_size_bytes: Default::default(),
             is_sorted,
             row_ids: if deep {
-                re_arrow_util::deep_slice_array(row_ids, index, len)
+                { let _d = re_arrow_util::deep_slice_array(row_ids, index, len); _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone() }
             } else {
                 row_ids.slice(index, len)
             },
