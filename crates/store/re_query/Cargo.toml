@@ -53,7 +53,6 @@ thiserror.workspace = true
 
 [dev-dependencies]
 re_arrow_util.workspace = true
-re_log_encoding.workspace = true
 re_sdk_types.workspace = true
 
 bytemuck.workspace = true

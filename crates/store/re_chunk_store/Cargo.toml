@@ -33,7 +33,6 @@ re_chunk.workspace = true
 re_format.workspace = true
 re_int.workspace = true
 re_log = { workspace = true, features = ["setup"] }
-re_log_encoding = { workspace = true, features = ["decoder"] }
 re_log_types.workspace = true
 re_sdk_types.workspace = true
 re_sorbet.workspace = true
@@ -57,7 +56,6 @@ web-time.workspace = true
 
 [dev-dependencies]
 re_format.workspace = true
-re_log_encoding = { workspace = true, features = ["decoder", "encoder"] }
 re_sdk_types = { workspace = true, features = ["testing"] }
 
 anyhow.workspace = true
