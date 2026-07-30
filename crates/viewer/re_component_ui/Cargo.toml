@@ -28,7 +28,7 @@ re_log.workspace = true
 re_log_types.workspace = true
 re_protos = { workspace = true, optional = true }
 re_tracing.workspace = true
-re_sdk_types = { path = "../re_sdk_types", default-features = false, features = [
+re_sdk_types = { workspace = true, features = [
   "egui_plot", # Needed to draw marker shapes.
 ] }
 re_types_core.workspace = true
