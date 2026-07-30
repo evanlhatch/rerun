@@ -8,6 +8,8 @@ members = [
   "crates/viewer/*",
 ]
 exclude = [
+  "crates/viewer/re_dataframe_ui",
+  "crates/viewer/re_view_state_timeline",
   # Build tooling — codegen, not needed at runtime
   "crates/build/re_types_builder",
   "crates/build/re_protos_builder",
@@ -20,7 +22,6 @@ exclude = [
   # Store crates not in flatland dep chain
   "crates/store/re_datafusion",
   "crates/store/re_dataframe",
-  "crates/viewer/re_dataframe_ui",
   "crates/store/re_grpc_server",
   "crates/store/re_hdf5",
   "crates/store/re_redap_tests",
@@ -39,7 +40,6 @@ exclude = [
   "crates/viewer/re_test_mocks",
   "crates/viewer/re_test_viewport",
   "crates/viewer/re_view_dataframe",
-  "crates/viewer/re_view_state_timeline",
   "crates/viewer/re_view_text_document",
   "crates/viewer/re_web_viewer_server",
   "crates/viewer/re_web_tests",
