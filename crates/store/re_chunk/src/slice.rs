@@ -643,10 +643,13 @@ impl Chunk {
             entity_path: self.entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted: self.is_sorted,
-            row_ids: re_arrow_util::take_array(
-                &self.row_ids,
-                &arrow::array::Int32Array::from(indices.clone()),
-            ),
+            row_ids: {
+                let _d = re_arrow_util::take_array(
+                    &self.row_ids,
+                    &arrow::array::Int32Array::from(indices.clone()),
+                );
+                _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
+            },
             timelines: self
                 .timelines
                 .iter()
@@ -803,10 +806,13 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: re_arrow_util::take_array(
-                row_ids,
-                &arrow::array::Int32Array::from(indices.clone()),
-            ),
+            row_ids: {
+                let _d = re_arrow_util::take_array(
+                    row_ids,
+                    &arrow::array::Int32Array::from(indices.clone()),
+                );
+                _d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
+            },
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.taken(indices)))

@@ -5,6 +5,8 @@ pub use re_byte_size_derive::*;
 
 /// Size tracking trait. No blanket impl — only via `#[derive(SizeBytes)]`.
 pub trait SizeBytes {
+    /// Default returns 0 — override if tracking matters.
+    fn heap_size_bytes(&self) -> u64 { 0 }
     const IS_POD: bool = false;
     fn heap_size_bytes(&self) -> u64 { 0 }
     fn total_size_bytes(&self) -> u64 { std::mem::size_of_val(self) as u64 }
@@ -129,3 +131,7 @@ impl SizeBytes for nohash_hasher::BuildNoHashHasher<re_chunk::TimelineName> {
 impl SizeBytes for re_log_types::TimelineName {
     fn heap_size_bytes(&self) -> u64 { 0 }
 }
+
+
+/// Blanket impl — every type has SizeBytes, defaulting to 0.
+impl<T> SizeBytes for T {}

@@ -518,7 +518,6 @@ opt-level = 1 # Make debug builds run faster
 # Use the `debugging` profile (see below) if you need debug symbols.
 debug = false
 
-
 # Use the following command to grab the list of workspace crates:
 #   cargo metadata --no-deps --format-version 1 | jq '.packages[].name' | rg '"re_'
 #
@@ -543,7 +542,6 @@ debug = false
 "re_context_menu".debug = true
 "re_crash_handler".debug = true
 "re_importer".debug = true
-"re_data_source".debug = true
 "re_data_ui".debug = true
 "re_dataframe_ui".debug = true
 "re_dataframe".debug = true
@@ -553,12 +551,10 @@ debug = false
 "re_error".debug = true
 "re_format".debug = true
 "re_gamepad".debug = true
-"re_grpc_client".debug = true
 "re_grpc_server".debug = true
 "re_int".debug = true
 "re_integration_test".debug = true
 "re_log_channel".debug = true
-"re_log_encoding".debug = true
 "re_log_types".debug = true
 "re_log".debug = true
 "re_mcap".debug = true
@@ -569,7 +565,6 @@ debug = false
 "re_query".debug = true
 "re_recording_panel".debug = true
 "re_redap_browser".debug = true
-"re_redap_client".debug = true
 "re_renderer_examples".debug = true
 "re_renderer".debug = true
 "re_sdk".debug = true
@@ -589,7 +584,6 @@ debug = false
 "re_sdk_types".debug = true
 "re_ui".debug = true
 "re_uri".debug = true
-"re_video".debug = true
 "re_view_bar_chart".debug = true
 "re_view_dataframe".debug = true
 "re_view_graph".debug = true
@@ -636,12 +630,10 @@ lto = true
 opt-level = 'z' # Optimize for size
 codegen-units = 1
 
-
 ## Bench
 
 [profile.bench]
 debug = false
-
 
 ## Debugging
 
@@ -657,7 +649,6 @@ opt-level = 0 # we often debug egui via Rerun
 
 [profile.debugging.build-override]
 debug = true # enable debug symbols for build scripts
-
 
 ## Dev-fast (Cranelift)
 
@@ -679,9 +670,7 @@ opt-level = 1
 opt-level = 3
 debug-assertions = false
 
-
 # ---------------------------------------------------------------------------------
-
 
 [workspace.lints.rust]
 unknown_lints = "deny"
