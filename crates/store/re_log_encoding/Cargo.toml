@@ -17,6 +17,7 @@ encoder = []
 stream_from_http = [
   "decoder",
   "dep:re_async",
+  "dep:ehttp",
   "dep:web-time",
 ]
 

@@ -116,10 +116,64 @@ impl SizeBytes for arrow::array::FixedSizeBinaryArray {
     }
 }
 
+// ── Arrow type impls (needed by re_chunk_store, re_entity_db, re_sorbet) ────
 
+impl SizeBytes for arrow::array::RecordBatch {
+    fn heap_size_bytes(&self) -> u64 {
+        self.columns().iter().map(|c| c.get_array_memory_size() as u64).sum()
+    }
+}
+
+impl SizeBytes for arrow::datatypes::Schema {
+    fn heap_size_bytes(&self) -> u64 { 0 }
+}
+
+impl<T: arrow::buffer::ArrowNativeType> SizeBytes for arrow::buffer::ScalarBuffer<T> {
+    fn heap_size_bytes(&self) -> u64 {
+        std::mem::size_of_val(self.as_slice()) as u64
+    }
+}
+
+impl SizeBytes for dyn arrow::array::Array {
+    fn heap_size_bytes(&self) -> u64 {
+        self.get_array_memory_size() as u64
+    }
+}
+
+impl SizeBytes for arrow::array::GenericListArray<i32> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.get_array_memory_size() as u64
+    }
+}
+
+// ── std collection impls ──────────────────────────────────────────────────
 impl<K: SizeBytes, V: SizeBytes, S> SizeBytes for std::collections::HashMap<K, V, S> {
     fn heap_size_bytes(&self) -> u64 {
         self.iter().map(|(k, v)| k.heap_size_bytes() + v.heap_size_bytes()).sum()
+    }
+}
+
+impl<T: SizeBytes> SizeBytes for std::collections::BTreeSet<T> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.iter().map(|e| e.heap_size_bytes()).sum()
+    }
+}
+
+impl<T: SizeBytes, S> SizeBytes for std::collections::HashSet<T, S> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.iter().map(|e| e.heap_size_bytes()).sum()
+    }
+}
+
+impl<T: SizeBytes> SizeBytes for parking_lot::RwLock<T> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.data_ptr().heap_size_bytes()
+    }
+}
+
+impl<T: SizeBytes> SizeBytes for parking_lot::Mutex<T> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.data_ptr().heap_size_bytes()
     }
 }
 
