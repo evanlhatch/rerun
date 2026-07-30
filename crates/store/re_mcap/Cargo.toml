@@ -15,6 +15,7 @@ version.workspace = true
 workspace = true
 
 [dependencies]
+parking_lot.workspace = true
 re_chunk.workspace = true
 re_int.workspace = true
 re_log_types.workspace = true
