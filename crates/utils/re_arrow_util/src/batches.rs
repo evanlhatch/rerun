@@ -211,7 +211,7 @@ impl RecordBatchExt for RecordBatch {
         self,
         cmp_fn: impl Fn(&Field, &Field) -> std::cmp::Ordering,
     ) -> arrow::error::Result<RecordBatch> {
-        let (schema_ref, columns, row_count) = (self.schema().clone(), self.columns().to_vec(), self.num_rows());
+        let (schema_ref, columns, row_count) = self.into_parts();
         let Schema { fields, metadata } = Arc::unwrap_or_clone(schema_ref);
 
         let (fields, columns): (Vec<_>, Vec<_>) =
@@ -232,7 +232,7 @@ impl RecordBatchExt for RecordBatch {
         self,
         predicate: impl Fn(&Field) -> bool,
     ) -> arrow::error::Result<RecordBatch> {
-        let (schema_ref, columns, row_count) = (self.schema().clone(), self.columns().to_vec(), self.num_rows());
+        let (schema_ref, columns, row_count) = self.into_parts();
         let Schema { fields, metadata } = Arc::unwrap_or_clone(schema_ref);
 
         let (new_fields, new_columns): (Vec<_>, Vec<_>) =
@@ -251,7 +251,7 @@ impl RecordBatchExt for RecordBatch {
     where
         I: Iterator<Item = &'a str>,
     {
-        let (schema_ref, columns, row_count) = (self.schema().clone(), self.columns().to_vec(), self.num_rows());
+        let (schema_ref, columns, row_count) = self.into_parts();
         let Schema { fields, metadata } = Arc::unwrap_or_clone(schema_ref);
 
         let mut seen_columns = HashSet::with_capacity(projected_columns.size_hint().0);
@@ -292,7 +292,7 @@ impl RecordBatchExt for RecordBatch {
     }
 
     fn rename_columns(self, renames: &[(&str, &str)]) -> arrow::error::Result<RecordBatch> {
-        let (schema_ref, columns, row_count) = (self.schema().clone(), self.columns().to_vec(), self.num_rows());
+        let (schema_ref, columns, row_count) = self.into_parts();
         let Schema { fields, metadata } = Arc::unwrap_or_clone(schema_ref);
 
         let new_fields: Vec<_> = fields
