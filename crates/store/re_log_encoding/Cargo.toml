@@ -45,3 +45,4 @@ re_async = { workspace = true, optional = true }
 xxhash-rust.workspace = true
 thiserror.workspace = true
 sha2.workspace = true
+web-time = { workspace = true, optional = true }
