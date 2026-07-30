@@ -128,7 +128,7 @@ impl SizeBytes for arrow::datatypes::Schema {
     fn heap_size_bytes(&self) -> u64 { 0 }
 }
 
-impl<T: arrow::buffer::ArrowNativeType> SizeBytes for arrow::buffer::ScalarBuffer<T> {
+impl<T: arrow::datatypes::ArrowNativeType> SizeBytes for arrow::buffer::ScalarBuffer<T> {
     fn heap_size_bytes(&self) -> u64 {
         std::mem::size_of_val(self.as_slice()) as u64
     }
