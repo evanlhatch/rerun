@@ -5,7 +5,7 @@ edition.workspace = true
 
 [features]
 default = []
-setup = []
+setup = ["dep:tracing-log"]
 
 [dependencies]
 log = { workspace = true, features = ["std"] }
