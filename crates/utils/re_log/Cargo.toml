@@ -8,6 +8,7 @@ default = []
 setup = []
 
 [dependencies]
+log = { workspace = true, features = ["std"] }
 tracing-log = { workspace = true, optional = true }
 tracing-subscriber.workspace = true
 parking_lot.workspace = true
