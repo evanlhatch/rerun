@@ -117,7 +117,7 @@ pub fn arrays_to_list_array(
     let data = if arrays_dense.is_empty() {
         new_empty_array(&array_datatype)
     } else {
-        re_tracing::profile_scope!("concatenate", arrays_dense.len().to_string());
+        re_tracing::profile_scope!("concatenate");
         concat_arrays(&arrays_dense)
             .map_err(|err| {
                 re_log::warn_once!("failed to concatenate arrays: {err}");
