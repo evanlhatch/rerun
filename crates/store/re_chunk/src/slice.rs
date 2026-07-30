@@ -147,7 +147,10 @@ impl Chunk {
                 .map(|column| {
                     SerializedComponentColumn::new(
                         if deep {
-                            re_arrow_util::deep_slice_array(&column.list_array, index, len)
+                            {
+            let d = re_arrow_util::deep_slice_array(&column.list_array, index, len);
+            d.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone()
+        }
                         } else {
                             column.list_array.slice(index, len)
                         },
@@ -452,7 +455,10 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: re_arrow_util::filter_array(row_ids, &validity_filter),
+            row_ids: {
+            let d = re_arrow_util::filter_array(row_ids, &validity_filter);
+            d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
+        },
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.filtered(&validity_filter)))
@@ -473,12 +479,12 @@ impl Chunk {
                         let field = field.clone();
                         let offsets = filtered_list.offsets().clone();
                         let values = filtered_list.values().clone();
-                        ArrowListArray::try_new(field, offsets, values, None).unwrap()
+                        arrow::array::make_array(ArrowListArray::try_new(field, offsets, values, None).unwrap().into())
                     } else {
                         filtered
                     };
 
-                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -651,7 +657,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let filtered = re_arrow_util::take_array(&column.list_array, &indices);
-                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -714,7 +720,10 @@ impl Chunk {
             entity_path: entity_path.clone(),
             heap_size_bytes: Default::default(),
             is_sorted,
-            row_ids: re_arrow_util::filter_array(row_ids, filter),
+            row_ids: {
+            let d = re_arrow_util::filter_array(row_ids, filter);
+            d.as_any().downcast_ref::<arrow::array::FixedSizeBinaryArray>().unwrap().clone()
+        },
             timelines: timelines
                 .iter()
                 .map(|(&timeline, time_column)| (timeline, time_column.filtered(filter)))
@@ -723,7 +732,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let filtered = re_arrow_util::filter_array(&column.list_array, filter);
-                    SerializedComponentColumn::new(filtered, column.descriptor.clone())
+                    SerializedComponentColumn::new(filtered.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
                 })
                 .collect(),
         };
@@ -806,7 +815,7 @@ impl Chunk {
                 .values()
                 .map(|column| {
                     let taken = re_arrow_util::take_array(&column.list_array, indices);
-                    SerializedComponentColumn::new(taken, column.descriptor.clone())
+                    SerializedComponentColumn::new(taken.as_any().downcast_ref::<arrow::array::GenericListArray<i32>>().unwrap().clone(), column.descriptor.clone())
                 })
                 .collect(),
         };

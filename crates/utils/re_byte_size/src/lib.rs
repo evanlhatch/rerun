@@ -108,3 +108,24 @@ where
         (**self).heap_size_bytes()
     }
 }
+
+impl SizeBytes for arrow::array::FixedSizeBinaryArray {
+    fn heap_size_bytes(&self) -> u64 {
+        self.values().len() as u64
+    }
+}
+
+
+impl<K: SizeBytes, V: SizeBytes, S> SizeBytes for std::collections::HashMap<K, V, S> {
+    fn heap_size_bytes(&self) -> u64 {
+        self.iter().map(|(k, v)| k.heap_size_bytes() + v.heap_size_bytes()).sum()
+    }
+}
+
+impl SizeBytes for nohash_hasher::BuildNoHashHasher<re_chunk::TimelineName> {
+    fn heap_size_bytes(&self) -> u64 { 0 }
+}
+
+impl SizeBytes for re_log_types::TimelineName {
+    fn heap_size_bytes(&self) -> u64 { 0 }
+}

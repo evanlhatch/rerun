@@ -53,7 +53,10 @@ pub fn arrays_to_list_array_opt(_arrays: &[Option<&dyn arrow::array::Array>]) ->
 }
 
 /// Create a ListArray from an array of optional references (stub).
-pub fn arrays_to_list_array(arrays: &[Option<&dyn arrow::array::Array>]) -> arrow::error::Result<arrow::array::ListArray> {
+pub fn arrays_to_list_array(
+    _datatype: arrow::datatypes::DataType,
+    arrays: &[Option<&dyn arrow::array::Array>],
+) -> arrow::error::Result<arrow::array::ListArray> {
     arrays_to_list_array_opt(arrays)
         .ok_or_else(|| arrow::error::ArrowError::ExternalError(Box::new(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -62,13 +65,13 @@ pub fn arrays_to_list_array(arrays: &[Option<&dyn arrow::array::Array>]) -> arro
 }
 
 /// Pad the back of a list array with empty lists (stub).
-pub fn pad_list_array_back(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::ArrayRef {
-    arrow::array::make_array(list_array.to_data())
+pub fn pad_list_array_back(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::GenericListArray<i32> {
+    list_array.clone()
 }
 
 /// Pad the front of a list array with empty lists (stub).
-pub fn pad_list_array_front(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::ArrayRef {
-    arrow::array::make_array(list_array.to_data())
+pub fn pad_list_array_front(list_array: &arrow::array::ListArray, _additional: usize) -> arrow::array::GenericListArray<i32> {
+    list_array.clone()
 }
 pub fn downcast_array_ref<'a, T: Array + 'static>(array: &'a dyn Array) -> Option<&'a T> {
     array.as_any().downcast_ref()
