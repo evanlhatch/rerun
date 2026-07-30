@@ -25,7 +25,10 @@ features = ["all"]
 default = ["ecolor"]
 
 ## All features except `testing`.
-all = ["ecolor", "egui_plot", "glam", "image", "mint", "video"]
+all = ["ecolor", "egui_plot", "glam", "image", "mint", "video", "gaussian-splat"]
+
+## Enable Gaussian Splatting support.
+gaussian-splat = []
 
 ## Enable color conversions.
 ecolor = ["dep:ecolor"]

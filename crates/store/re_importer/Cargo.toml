@@ -22,6 +22,9 @@ all-features = true
 [features]
 default = []
 
+## Enable Gaussian Splatting .ply import.
+gaussian-splat = ["re_sdk_types/gaussian-splat"]
+
 
 [dependencies]
 re_arrow_util.workspace = true

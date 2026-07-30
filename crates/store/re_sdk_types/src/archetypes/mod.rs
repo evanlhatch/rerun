@@ -29,7 +29,9 @@ mod encoded_depth_image;
 mod encoded_depth_image_ext;
 mod encoded_image;
 mod encoded_image_ext;
+#[cfg(feature = "gaussian-splat")]
 mod gaussian_splats3d;
+#[cfg(feature = "gaussian-splat")]
 mod gaussian_splats3d_ext;
 mod geo_line_strings;
 mod geo_line_strings_ext;
@@ -95,6 +97,7 @@ pub use self::ellipses2d::Ellipses2D;
 pub use self::ellipsoids3d::Ellipsoids3D;
 pub use self::encoded_depth_image::EncodedDepthImage;
 pub use self::encoded_image::EncodedImage;
+#[cfg(feature = "gaussian-splat")]
 pub use self::gaussian_splats3d::GaussianSplats3D;
 pub use self::geo_line_strings::GeoLineStrings;
 pub use self::geo_points::GeoPoints;

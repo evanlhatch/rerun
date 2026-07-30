@@ -1,6 +1,7 @@
 mod compositor;
 mod debug_overlay;
 mod depth_cloud;
+#[cfg(feature = "gaussian-splat")]
 mod gaussian_splat;
 mod generic_skybox;
 mod lines;
@@ -13,6 +14,7 @@ mod voxel_grid;
 mod world_grid;
 
 pub use debug_overlay::{DebugOverlayDrawData, DebugOverlayError, DebugOverlayRenderer};
+#[cfg(feature = "gaussian-splat")]
 pub use gaussian_splat::{
     GaussianSplatBatchInfo, GaussianSplatDrawData, GaussianSplatDrawDataError,
     GaussianSplatRenderer,
@@ -34,6 +36,7 @@ pub use world_grid::{WorldGridConfiguration, WorldGridDrawData, WorldGridRendere
 pub use self::depth_cloud::{DepthCloud, DepthCloudDrawData, DepthCloudRenderer, DepthClouds};
 
 pub mod gpu_data {
+    #[cfg(feature = "gaussian-splat")]
     pub use super::gaussian_splat::gpu_data::{
         GaussianPositionScaleX, GaussianRotation, GaussianScaleYZ,
     };

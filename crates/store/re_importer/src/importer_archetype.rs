@@ -196,6 +196,16 @@ fn load_image(
 ) -> Result<impl ExactSizeIterator<Item = Chunk> + use<>, ImporterError> {
     re_tracing::profile_function!();
 
+    #[cfg(feature = "gaussian-splat")]
+    fn is_gaussian_splat_ply(contents: &[u8]) -> bool {
+        re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents)
+    }
+
+    #[cfg(not(feature = "gaussian-splat"))]
+    fn is_gaussian_splat_ply(_contents: &[u8]) -> bool {
+        false
+    }
+
     let rows = [
         {
             let mut arch = re_sdk_types::archetypes::EncodedImage::from_file_contents(contents);
@@ -221,6 +231,16 @@ fn load_depth_image(
     contents: Vec<u8>,
 ) -> Result<impl ExactSizeIterator<Item = Chunk> + use<>, ImporterError> {
     re_tracing::profile_function!();
+
+    #[cfg(feature = "gaussian-splat")]
+    fn is_gaussian_splat_ply(contents: &[u8]) -> bool {
+        re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents)
+    }
+
+    #[cfg(not(feature = "gaussian-splat"))]
+    fn is_gaussian_splat_ply(_contents: &[u8]) -> bool {
+        false
+    }
 
     let rows = [{
         let mut arch = re_sdk_types::archetypes::EncodedDepthImage::from_file_contents(contents);
@@ -294,6 +314,16 @@ fn load_mesh(
 ) -> Result<impl ExactSizeIterator<Item = Chunk>, ImporterError> {
     re_tracing::profile_function!();
 
+    #[cfg(feature = "gaussian-splat")]
+    fn is_gaussian_splat_ply(contents: &[u8]) -> bool {
+        re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents)
+    }
+
+    #[cfg(not(feature = "gaussian-splat"))]
+    fn is_gaussian_splat_ply(_contents: &[u8]) -> bool {
+        false
+    }
+
     let rows = [
         {
             let arch = re_sdk_types::archetypes::Asset3D::from_file_contents(
@@ -318,16 +348,29 @@ fn load_point_cloud(
 ) -> Result<impl ExactSizeIterator<Item = Chunk> + use<>, ImporterError> {
     re_tracing::profile_function!();
 
+    #[cfg(feature = "gaussian-splat")]
+    fn is_gaussian_splat_ply(contents: &[u8]) -> bool {
+        re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents)
+    }
+
+    #[cfg(not(feature = "gaussian-splat"))]
+    fn is_gaussian_splat_ply(_contents: &[u8]) -> bool {
+        false
+    }
+
     let rows = [
         {
             let mut builder = Chunk::builder(entity_path);
-            if re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents) {
-                let gaussians = re_sdk_types::archetypes::GaussianSplats3D::from_ply_file_contents(
-                    contents,
-                    Some(filepath),
-                )
-                .map_err(anyhow::Error::from)?;
-                builder = builder.with_archetype(RowId::new(), timepoint, &gaussians);
+            if is_gaussian_splat_ply(contents) {
+                #[cfg(feature = "gaussian-splat")]
+                {
+                    let gaussians = re_sdk_types::archetypes::GaussianSplats3D::from_ply_file_contents(
+                        contents,
+                        Some(filepath),
+                    )
+                    .map_err(anyhow::Error::from)?;
+                    builder = builder.with_archetype(RowId::new(), timepoint, &gaussians);
+                }
             } else {
                 // TODO(#4532): `.ply` importer should support 2D point cloud & meshes
                 let points3d = re_sdk_types::archetypes::Points3D::from_file_contents(contents)
@@ -349,6 +392,16 @@ fn load_text_document(
     contents: Vec<u8>,
 ) -> Result<impl ExactSizeIterator<Item = Chunk>, ImporterError> {
     re_tracing::profile_function!();
+
+    #[cfg(feature = "gaussian-splat")]
+    fn is_gaussian_splat_ply(contents: &[u8]) -> bool {
+        re_sdk_types::archetypes::GaussianSplats3D::is_gaussian_splat_ply(contents)
+    }
+
+    #[cfg(not(feature = "gaussian-splat"))]
+    fn is_gaussian_splat_ply(_contents: &[u8]) -> bool {
+        false
+    }
 
     let rows = [
         {

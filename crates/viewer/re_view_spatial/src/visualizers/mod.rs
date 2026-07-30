@@ -11,6 +11,7 @@ mod cylinders3d;
 mod depth_images;
 mod ellipses2d;
 mod ellipsoids;
+#[cfg(feature = "gaussian-splat")]
 mod gaussian_splats3d;
 mod grid_map;
 mod images;
@@ -113,6 +114,7 @@ pub fn register_3d_spatial_visualizers(
     system_registry.register_visualizer::<ellipses2d::Ellipses2DVisualizer>()?;
     system_registry.register_visualizer::<video::EncodedDepthImageVisualizer>()?;
     system_registry.register_visualizer::<video::EncodedImageVisualizer>()?;
+    #[cfg(feature = "gaussian-splat")]
     system_registry.register_visualizer::<gaussian_splats3d::GaussianSplats3DVisualizer>()?;
     system_registry.register_visualizer::<grid_map::GridMapVisualizer>()?;
     system_registry.register_visualizer::<images::ImageVisualizer>()?;

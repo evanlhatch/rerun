@@ -36,6 +36,9 @@ ignored = [
 [features]
 default = ["import-dae", "import-gltf", "import-obj", "import-stl"]
 
+## Enable Gaussian Splatting renderer.
+gaussian-splat = []
+
 ## Support importing .dae files
 import-dae = ["dep:dae-parser"]
 

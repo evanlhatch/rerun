@@ -23,6 +23,9 @@ all-features = true
 ## You need to install [nasm](https://github.com/netwide-assembler/nasm) to compile with this feature.
 nasm = ["re_video/nasm"]
 
+## Enable Gaussian Splatting visualizer.
+gaussian-splat = ["dep:re_sdk_types", "re_renderer/gaussian-splat", "re_sdk_types/gaussian-splat"]
+
 [dependencies]
 
 re_byte_size = { workspace = true, features = ["ecolor", "egui", "glam", "macaw"] }
